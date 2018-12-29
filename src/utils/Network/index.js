@@ -291,6 +291,27 @@ class Network {
     };
     Http.post(funcName, params, success, failure);
   }
+
+  static destroy(successCB) {
+    let funcName = '/Destroy.do';
+    let params = {
+      otnId: Core.local.getItem('otnId')
+    };
+    let success = data => {
+      let code = data.HEAD.code;
+      let msg = data.HEAD.msg;
+      if (code === '111111') {
+        successCB(true);
+      } else {
+        Core.ui.message.warn(msg);
+        successCB(false);
+      }
+    };
+    let failure = (err) => {
+      Core.ui.message.error('网络错误');
+    };
+    Http.post(funcName, params, success, failure);
+  }
 }
 
 export default Network;

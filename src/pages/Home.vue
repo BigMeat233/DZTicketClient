@@ -72,6 +72,10 @@ export default {
   async mounted() {
     let result = await this.registerDevice();
   },
+  async destroyed() {
+    let result = await this.destroy();
+    Core.local.removeItem('otnId');
+  },
   methods: {
     registerDevice() {
       return new Promise((resolve, reject) => {
@@ -125,6 +129,13 @@ export default {
     cancelQueue() {
       return new Promise((resolve, reject) => {
         Network.cancelQueue((result) => {
+          resolve(result);
+        });
+      });
+    },
+    destroy() {
+      return new Promise((resolve, reject) => {
+        Network.destroy((result) => {
           resolve(result);
         });
       });
