@@ -1,0 +1,243 @@
+<template>
+  <div class="loginDiv">
+    <div class="extendDiv">
+      <label class="linkBtn" @click="faqBtnClick">缩在墙角的FAQ</label>
+    </div>
+    <div class="tipDiv">登陆</div>
+    <div class="inputDiv">
+      <el-input v-model="userId" placeholder="请输入12306账号" clearable></el-input>
+    </div>
+    <div class="inputDiv">
+      <el-input v-model="userPwd" placeholder="请输入12306密码" type="password" clearable></el-input>
+    </div>
+    <div class="submitBtnDiv">
+      <el-button type="primary" size="medium" @click.native="submitBtnClick($event)">登录</el-button>
+    </div>
+    <div class="checkCodeAreaDiv">
+      <div class="checkCodeDiv" @click="checkCodeDivClick($event)">
+        <img :src="checkCodeImg">
+        <el-button
+          icon="el-icon-refresh"
+          size="mini"
+          class="refreshBtn"
+          @click.native="refreshBtnClick($event)"
+        ></el-button>
+        <div
+          v-for="(point,index) in points"
+          :key="index"
+          :style="{left:(point.x-13) +'px',top:(point.y-13)+'px'}"
+          class="pointDiv"
+          @click="pointClick(index,$event)"
+        >
+          <img src="@/assets/images/logo.png" height="27" width="27">
+        </div>
+      </div>
+    </div>
+    <div class="versionDiv">
+      <label>DZTicket V1.0.0.0</label>
+      <label>QQ:303569528</label>
+      <label>Wechat:Dashuaige_Douzi</label>
+      <label>请大家谨慎使用 遵纪守法</label>
+      <label>2019版本用了最新科技重构了代码</label>
+      <label style="color:orange">破解了12306设备码 每次登陆都模拟一个新设备</label>
+      <label>特别鸣谢大鲜肉🍓同学亲自写了每一行代码</label>
+      <label>没错就是本鲜肉😂</label>
+    </div>
+    <el-dialog title="FAQ" :visible.sync="faqDialogVisble" :show-close="true">
+      <div class="logDiv">
+        <p>Q1:频繁刷票失败怎么办?</p>
+        <p>A1:首先需要确定查票的日期没有放票,如果已放票则尝试返回登录页面重新登录</p>
+        <br>
+        <p>Q2:出现订单预处理失败?</p>
+        <p>A2:尝试再次下单,若一直出现说明已掉线,返回登录页面重新登录</p>
+        <br>
+        <p>Q3:下单时提示请先选择需要抢票的乘客?</p>
+        <p>A3:需要点击[添加乘客],在里面选座后点击该乘客,出现屎黄色框框才表示该乘客被选中</p>
+        <br>
+        <p>Q4:刷票时提示起点站或终点站不存在?</p>
+        <p>A4:需要务必保证起点站和终点站在12306系统中存在</p>
+        <br>
+        <p>Q5:出票成功后怎么支付?</p>
+        <p>A5:需要登录12306进入我的订单进行支付</p>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import defaultImg from '@/assets/images/checkCodeImg.png';
+import Network from '@/utils/Network';
+import Core from '@/utils/Core';
+export default {
+  name: 'Login',
+  data() {
+    return {
+      userId: '',
+      userPwd: '',
+      points: [],
+      checkCodeImg: defaultImg,
+      faqDialogVisble: false
+    };
+  },
+  methods: {
+    refreshBtnClick(event) {
+      event.stopPropagation();
+      this.getCheckCode();
+    },
+    faqBtnClick() {
+      this.faqDialogVisble = true;
+    },
+    async submitBtnClick() {
+      if (this.userId === '') {
+        Core.ui.message.warn('请输入12306账号');
+        return;
+      }
+      if (this.userPwd === '') {
+        Core.ui.message.warn('请输入12306密码');
+        return;
+      }
+      if (this.points.length === 0) {
+        Core.ui.message.warn('请往验证码上点狗头');
+        return;
+      }
+      let answer = this.getAnswer();
+      let result = await this.login(this.userId, this.userPwd, answer);
+      if (result) {
+        this.userId = '';
+        this.userPwd = '';
+        Core.navigator.push('/Home');
+      } else {
+        this.getCheckCode();
+      }
+    },
+    getAnswer() {
+      let answer = [];
+      this.points.forEach(point => {
+        answer.push(point.x.toString());
+        answer.push((point.y - 30).toString());
+      });
+      answer = answer.join(',');
+      return answer;
+    },
+    checkCodeDivClick(event) {
+      var point = {
+        x: event.layerX,
+        y: event.layerY
+      };
+      this.points.push(point);
+    },
+    pointClick(index, event) {
+      event.stopPropagation();
+      this.points.splice(index, 1);
+    },
+    initPage() {
+      return new Promise((resolve, reject) => {
+        Network.initPage((otnId) => {
+          resolve(otnId);
+        });
+      });
+    },
+    getCheckCode() {
+      this.points = [];
+      return new Promise((resolve, reject) => {
+        Network.getCheckCode((imgBase64) => {
+          this.checkCodeImg = imgBase64;
+          resolve(true);
+        });
+      });
+    },
+    login(userId, userPwd, answer) {
+      return new Promise((resolve, reject) => {
+        Network.login(userId, userPwd, answer, (result) => {
+          resolve(result);
+        });
+      });
+    }
+  },
+  async mounted() {
+    await this.initPage();
+    await this.getCheckCode();
+  }
+};
+</script>
+
+<style scoped>
+.loginDiv {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.extendDiv {
+  position: absolute;
+  right: 0;
+  -webkit-user-select: none;
+}
+
+.linkBtn {
+  color: rgb(48, 154, 248);
+  font-size: xx-small;
+  margin-right: 10px;
+  text-decoration: underline;
+}
+.tipDiv {
+  margin-top: 80px;
+  font-size: xx-large;
+  color: orange;
+}
+
+.inputDiv {
+  margin-top: 30px;
+  width: 230px;
+}
+
+.submitBtnDiv {
+  margin-top: 30px;
+}
+
+.checkCodeDiv {
+  position: relative;
+  margin-top: 30px;
+  border: 1px solid orange;
+  height: 190px;
+  width: 293px;
+}
+
+.refreshBtn {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.pointDiv {
+  position: absolute;
+  border-radius: 13px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 27px;
+  width: 27px;
+}
+
+.versionDiv {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  font-size: xx-small;
+}
+
+.logDiv {
+  text-align: left;
+}
+</style>
+
