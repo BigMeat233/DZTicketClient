@@ -13,11 +13,13 @@ function LoadingUtil() {
   this.close = _close;
 
   function _show() {
-    _loading = Loading.service();
+    setTimeout(() => {
+      _loading = Loading.service();
+    }, 0);
   }
 
   function _close() {
-    setTimeout(function() {
+    setTimeout(function () {
       _loading.close();
     }, 0);
   }
