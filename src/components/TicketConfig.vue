@@ -42,7 +42,9 @@ export default {
       handler(newValue, oldValue) {
         if (newValue) {
           this.ticketConfig.isAutoCommit = true;
-          this.ticketConfig.queryInterval = 500;
+          if (!this.ticketConfig.queryInterval) {
+            this.ticketConfig.queryInterval = 500;
+          }
         } else {
           this.ticketConfig.queryInterval = '';
         }

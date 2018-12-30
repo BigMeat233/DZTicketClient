@@ -83,6 +83,7 @@ export default {
       ticketDialogVisible: false,
       persons: [],
       ticketInfos: [],
+      timer: null,
     };
   },
   computed: {
@@ -91,6 +92,7 @@ export default {
     let result = await this.registerDevice();
   },
   async destroyed() {
+    clearTimeout(this.timer);
     // let result = await this.destroy();
     // Core.local.removeItem('otnId');
   },
@@ -202,6 +204,9 @@ export default {
       this.ticketDialogVisible = true;
     },
     async queryTicketBtnClick() {
+      // 重置之前的计时器
+      if (this.timer) { clearTimeout(this.timer) }
+      // 处理参数和缓存
       let startStation = this.ticketLimit.startStation;
       let endStation = this.ticketLimit.endStation;
       let date = this.ticketLimit.date;
@@ -228,7 +233,7 @@ export default {
 
       let ticketInfos = await this.queryTickets(startStation, endStation, date, ticketType);
 
-      // 过滤器
+      // 车次过滤
       if (!this.ticketConfig.isTrainLimit) {
         this.ticketInfos = ticketInfos;
       } else {
@@ -243,6 +248,7 @@ export default {
         });
       }
 
+      // 自动提交
       if (!this.ticketConfig.isAutoCommit) {
         return;
       }
@@ -257,6 +263,7 @@ export default {
       if (traninInfos.length === 0) {
         Core.ui.message.warn('未匹配到列车');
       }
+
       let handlerInfo = Handler.getOrderPersonInfo(traninInfos, personInfos);
       let persons = handlerInfo.persons;
       let train = handlerInfo.trainInfo;
@@ -269,12 +276,13 @@ export default {
           return;
         }
       }
+
       // 自动刷票逻辑
       if (!this.ticketConfig.isAutoQuery) {
         return;
       }
 
-      setTimeout(() => { this.queryTicketBtnClick() }, parseInt(this.ticketConfig.queryInterval));
+      this.timer = setTimeout(() => { this.queryTicketBtnClick() }, parseInt(this.ticketConfig.queryInterval));
     },
     async queryQueueBtnClick() {
       let queueInfo = await this.queryQueue();
