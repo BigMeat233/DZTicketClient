@@ -12,8 +12,8 @@
     <tickets :ticketInfos="ticketInfos" @onOrder="onOrderTicket"></tickets>
     <el-dialog
       title="选择乘客"
-      :visible.sync="personDialogVisible"
       width="50%"
+      :visible.sync="personDialogVisible"
       :close-on-click-modal="false"
     >
       <div class="personContainerDiv">
@@ -31,6 +31,14 @@
         <add-person ref="addPerson" @onPersonInputFinish="personInputFinish"></add-person>
       </el-dialog>
     </el-dialog>
+    <el-dialog
+      title="刷票配置"
+      width="45%"
+      :visible.sync="ticketDialogVisible"
+      custom-class="ticketDialog"
+    >
+      <ticket-config v-model="ticketConfig"></ticket-config>
+    </el-dialog>
   </div>
 </template>
 
@@ -43,6 +51,7 @@ import Person from '@/components/Person';
 import AddPerson from '@/components/AddPerson';
 import Tickets from '@/components/Tickets';
 import Handler from '@/utils/Handler';
+import TicketConfig from '@/components/TicketConfig';
 
 export default {
   name: 'Home',
@@ -51,7 +60,8 @@ export default {
     'func-bar': FuncBar,
     'person': Person,
     'add-person': AddPerson,
-    'tickets': Tickets
+    'tickets': Tickets,
+    'ticket-config': TicketConfig
   },
   data() {
     return {
@@ -61,8 +71,16 @@ export default {
         date: Core.local.getItem('date') ? Core.local.getItem('date') : '2019-01-30',
         ticketType: Core.local.getItem('ticketType') ? Core.local.getItem('ticketType') : 'adult',
       },
+      ticketConfig: {
+        isAutoCommit: false,
+        isAutoQuery: false,
+        queryInterval: '',
+        isTrainLimit: false,
+        trainLimit: '',
+      },
       personDialogVisible: false,
       addPersonDialogVisble: false,
+      ticketDialogVisible: false,
       persons: [],
       ticketInfos: [],
     };
@@ -73,8 +91,8 @@ export default {
     let result = await this.registerDevice();
   },
   async destroyed() {
-    let result = await this.destroy();
-    Core.local.removeItem('otnId');
+    // let result = await this.destroy();
+    // Core.local.removeItem('otnId');
   },
   methods: {
     registerDevice() {
@@ -181,7 +199,7 @@ export default {
       this.ticketLimit.endStation = '';
     },
     advanceBtnClick() {
-
+      this.ticketDialogVisible = true;
     },
     async queryTicketBtnClick() {
       let startStation = this.ticketLimit.startStation;
@@ -208,7 +226,55 @@ export default {
       Core.local.setItem('date', date);
       Core.local.setItem('ticketType', ticketType);
 
-      this.ticketInfos = await this.queryTickets(startStation, endStation, date, ticketType);
+      let ticketInfos = await this.queryTickets(startStation, endStation, date, ticketType);
+
+      // 过滤器
+      if (!this.ticketConfig.isTrainLimit) {
+        this.ticketInfos = ticketInfos;
+      } else {
+        let trainLimitArr = this.ticketConfig.trainLimit.split(',');
+        this.ticketInfos = ticketInfos.filter((ticketInfo) => {
+          for (let i = 0; i < trainLimitArr.length; i++) {
+            if (trainLimitArr[i] === ticketInfo.trainCount) {
+              return true;
+            }
+          }
+          return false;
+        });
+      }
+
+      if (!this.ticketConfig.isAutoCommit) {
+        return;
+      }
+
+      let personInfos = this.persons.filter((person) => { return person.isSelected });
+      if (personInfos.length === 0) {
+        Core.ui.message.warn('请先选择需要抢票的乘客');
+        return;
+      }
+
+      let traninInfos = this.ticketInfos.map((ticketInfo) => { return Handler.toTrainInfo(Handler.toTicketDisplayInfo(ticketInfo)) });
+      if (traninInfos.length === 0) {
+        Core.ui.message.warn('未匹配到列车');
+      }
+      let handlerInfo = Handler.getOrderPersonInfo(traninInfos, personInfos);
+      let persons = handlerInfo.persons;
+      let train = handlerInfo.trainInfo;
+      if (persons.length === 0) {
+        Core.ui.message.error('余票不足');
+      } else {
+        let result = await this.orderTicket(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons);
+        if (result.result) {
+          Core.ui.message.success(`下单成功,当前余票:[${result.queueInfo.ticket}],队列:[${result.queueInfo.count},${result.queueInfo.countT}]`);
+          return;
+        }
+      }
+      // 自动刷票逻辑
+      if (!this.ticketConfig.isAutoQuery) {
+        return;
+      }
+
+      setTimeout(() => { this.queryTicketBtnClick() }, parseInt(this.ticketConfig.queryInterval));
     },
     async queryQueueBtnClick() {
       let queueInfo = await this.queryQueue();
@@ -264,7 +330,9 @@ export default {
         return;
       }
       let result = await this.orderTicket(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons);
-      Core.ui.message.success(`下单成功,当前余票:[${result.ticket}],队列:[${result.count},${result.countT}]`);
+      if (result.result) {
+        Core.ui.message.success(`下单成功,当前余票:[${result.queueInfo.ticket}],队列:[${result.queueInfo.count},${result.queueInfo.countT}]`);
+      }
     }
   }
 };

@@ -232,8 +232,9 @@ class Network {
       let code = data.HEAD.code;
       let msg = data.HEAD.msg;
       if (code === '111111') {
-        successCB(data.BODY.queueInfo);
+        successCB({ result: true, queueInfo: data.BODY.queueInfo });
       } else {
+        successCB({ result: false });
         Core.ui.message.warn(msg);
       }
     };

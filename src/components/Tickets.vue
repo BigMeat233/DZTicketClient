@@ -33,85 +33,20 @@
 </template>
 
 <script>
+import Handler from '@/utils/Handler';
 export default {
   name: 'Tickets',
   props: ['ticketInfos'],
   computed: {
     ticketInfosTemp() {
       return this.ticketInfos.map((ticketInfo) => {
-        return {
-          trainCount: ticketInfo.trainCount,
-          date: ticketInfo.date,
-          time: ticketInfo.startT + ' - ' + ticketInfo.endT + ' | ' + ticketInfo.duration,
-          station: ticketInfo.startStr + ' - ' + ticketInfo.endStr,
-          superSeat: ticketInfo.superSeat,// 商务座
-          firSeat: ticketInfo.firSeat,// 一等座
-          secSeat: ticketInfo.secSeat,// 二等座
-          superBed: ticketInfo.superBed,// 动卧
-          superSoftBed: ticketInfo.superSoftBed,// 高级软卧
-          softBed: ticketInfo.softBed,// 软卧
-          softSeat: ticketInfo.softSeat,// 软座
-          hardBed: ticketInfo.hardBed,// 硬卧
-          hardSeat: ticketInfo.hardSeat,// 硬座
-          noSeat: ticketInfo.noSeat,// 无座
-          trainId: ticketInfo.trainId,
-          location: ticketInfo.location,
-          startS: ticketInfo.startS,
-          endS: ticketInfo.endS,
-          startN: ticketInfo.startStr,
-          endN: ticketInfo.endStr,
-          secStr: ticketInfo.secStr,
-          trainNo: ticketInfo.trainNo,
-          state: ticketInfo.state,
-        };
+        return Handler.toTicketDisplayInfo(ticketInfo);
       });
     },
   },
   methods: {
-    createOrderBtnClick(data) {
-      let trainId = data.trainId;
-      let trainNo = data.trainNo;
-      let trainCount = data.trainCount;
-      let location = data.location;
-      let secStr = data.secStr;
-      let startS = data.startS;
-      let endS = data.endS;
-      let startN = data.startN;
-      let endN = data.endN;
-      let date = data.date.substring(0, 4) + '-' + data.date.substring(4, 6) + '-' + data.date.substring(6, 8);
-      let superSeat = data.superSeat;// 商务座
-      let firSeat = data.firSeat;// 一等座
-      let secSeat = data.secSeat;// 二等座
-      let superBed = data.superBed;// 动卧
-      let superSoftBed = data.superSoftBed;// 高级软卧
-      let softBed = data.softBed;// 软卧
-      let softSeat = data.softSeat;// 软座
-      let hardBed = data.hardBed;// 硬卧
-      let hardSeat = data.hardSeat;// 硬座
-      let noSeat = data.noSeat;// 无座
-
-      let trainInfo = {
-        trainId,
-        trainNo,
-        trainCount,
-        location,
-        secStr,
-        startS,
-        startN,
-        endS,
-        endN,
-        date,
-        superSeat,
-        firSeat,
-        secSeat,
-        superBed,
-        superSoftBed,
-        softBed,
-        softSeat,
-        hardBed,
-        hardSeat,
-        noSeat
-      };
+    createOrderBtnClick(ticketDisplayInfo) {
+      let trainInfo = Handler.toTrainInfo(ticketDisplayInfo);
       this.$emit('onOrder', trainInfo);
     },
     cellStyleCallBack(loc) {
