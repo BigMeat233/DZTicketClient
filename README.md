@@ -1,21 +1,10 @@
-# dz_ticket_client
+# DZTicketClient
+###A 12306 Ticket Service Project
+Address: http://t.og.gl
+Service Github: https://github.com/BigMeat233/DZTicketService
 
-> 12306 Ticket Client Project
+### Serivce Powered By DZSuperFrame
+Github: https://github.com/BigMeat233/DZSuperFrame
+Document: http://og.gl/doc
 
-## Build Setup
-
-``` bash
-# install dependencies
-npm install
-
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
-```
-
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+### Builder Based On Vue-Cli
