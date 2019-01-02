@@ -91,7 +91,7 @@ export default {
   },
   async mounted() {
     let result = await this.registerDevice();
-    this.autoQueryQueueTimer = setInterval(() => { if (this.ticketLimit.isAutoCommit) { this.queryQueue() } }, 10000);
+    this.autoQueryQueueTimer = setInterval(() => { if (this.ticketConfig.isAutoCommit) { this.queryQueue() } }, 10000);
   },
   async destroyed() {
     clearTimeout(this.timer);
