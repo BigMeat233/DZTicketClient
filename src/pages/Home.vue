@@ -84,15 +84,18 @@ export default {
       persons: [],
       ticketInfos: [],
       timer: null,
+      autoQueryQueueTimer: null,
     };
   },
   computed: {
   },
   async mounted() {
     let result = await this.registerDevice();
+    this.autoQueryQueueTimer = setInterval(() => { if (this.ticketLimit.isAutoCommit) { this.queryQueue() } }, 10000);
   },
   async destroyed() {
     clearTimeout(this.timer);
+    clearInterval(this.autoQueryQueueTimer);
     // let result = await this.destroy();
     // Core.local.removeItem('otnId');
   },
