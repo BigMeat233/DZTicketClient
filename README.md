@@ -3,6 +3,7 @@
 ### A Client Project for Train Ticket of 12306  
 Producation Address: http://t.og.gl  
 Service Project Github: https://github.com/BigMeat233/DZTicketService  
+<font color="red">Removed according to regulations</font>
 
 ### Serivce Powered By DZSuperFrame  
 Github: https://github.com/BigMeat233/DZSuperFrame  

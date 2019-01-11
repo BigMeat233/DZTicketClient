@@ -19,7 +19,6 @@ class Network {
     };
     let failure = err => {
       Core.ui.loading.close();
-      ß;
       Core.ui.message.error('网络错误');
     };
     Http.post(funcName, params, success, failure);
