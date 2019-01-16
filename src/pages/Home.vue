@@ -276,6 +276,7 @@ export default {
         let result = await this.orderTicket(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons);
         if (result.result) {
           Core.ui.message.success(`下单成功,当前余票:[${result.queueInfo.ticket}],队列:[${result.queueInfo.count},${result.queueInfo.countT}]`);
+          setTimeout(() => { this.queryQueueBtnClick() }, 1000);
           return;
         }
       }
@@ -343,6 +344,7 @@ export default {
       let result = await this.orderTicket(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons);
       if (result.result) {
         Core.ui.message.success(`下单成功,当前余票:[${result.queueInfo.ticket}],队列:[${result.queueInfo.count},${result.queueInfo.countT}]`);
+        setTimeout(() => { this.queryQueueBtnClick() }, 1000);
       }
     }
   }
