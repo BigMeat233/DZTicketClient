@@ -90,7 +90,6 @@ export default {
   computed: {
   },
   async mounted() {
-    let result = await this.registerDevice();
     this.autoQueryQueueTimer = setInterval(() => { if (this.ticketConfig.isAutoCommit) { this.queryQueue() } }, 10000);
   },
   async destroyed() {
@@ -100,13 +99,6 @@ export default {
     // Core.local.removeItem('otnId');
   },
   methods: {
-    registerDevice() {
-      return new Promise((resolve, reject) => {
-        Network.registerDevice((result) => {
-          resolve(result);
-        });
-      });
-    },
     queryTickets(startStation, endStation, date, ticketType) {
       return new Promise((resolve, reject) => {
         Network.queryTickets(startStation, endStation, date, ticketType, (ticketInfos) => {

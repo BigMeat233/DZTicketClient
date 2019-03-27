@@ -137,6 +137,13 @@ export default {
         });
       });
     },
+    registerDevice() {
+      return new Promise((resolve, reject) => {
+        Network.registerDevice((result) => {
+          resolve(result);
+        });
+      });
+    },
     getCheckCode() {
       this.points = [];
       return new Promise((resolve, reject) => {
@@ -156,6 +163,7 @@ export default {
   },
   async mounted() {
     await this.initPage();
+    await this.registerDevice();
     await this.getCheckCode();
   }
 };
