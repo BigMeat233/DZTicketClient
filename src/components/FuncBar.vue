@@ -6,6 +6,7 @@
     <el-button type="info" class="formBtn" @click.native="btnClick(3)">排队情况</el-button>
     <el-button type="danger" class="formBtn" @click.native="btnClick(4)">取消排队</el-button>
     <el-button type="warning" class="formBtn" @click.native="btnClick(5)">选择乘客</el-button>
+    <el-button icon="el-icon-tickets" circle @click.native="btnClick(6)"></el-button>
   </div>
 </template>
 
@@ -26,7 +27,9 @@ export default {
         this.$emit('onCancelQueueBtnClick');
       } else if(index === 5){
         this.$emit('onPersonBtnClick');
-      }
+      } else if(index === 6){
+        this.$emit('onQueryOrderBtnClick');
+      } 
     }
   },
 }

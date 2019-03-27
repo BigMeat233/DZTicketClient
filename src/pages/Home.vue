@@ -8,6 +8,7 @@
       @onQueryQueueBtnClick="queryQueueBtnClick"
       @onCancelQueueBtnClick="cancelQueueBtnClick"
       @onPersonBtnClick="personBtnClick"
+      @onQueryOrderBtnClick="queryOrderBtnClick"
     ></func-bar>
     <tickets :ticketInfos="ticketInfos" @onOrder="onOrderTicket"></tickets>
     <el-dialog
@@ -144,6 +145,20 @@ export default {
     cancelQueue() {
       return new Promise((resolve, reject) => {
         Network.cancelQueue((result) => {
+          resolve(result);
+        });
+      });
+    },
+    queryOrder() {
+      return new Promise((resolve, reject) => {
+        Network.queryOrder((result) => {
+          resolve(result);
+        });
+      });
+    },
+    cancelOrder(orderId) {
+      return new Promise((resolve, reject) => {
+        Network.cancelOrder(orderId, (result) => {
           resolve(result);
         });
       });
@@ -294,6 +309,20 @@ export default {
       let result = await this.cancelQueue();
       if (result) {
         Core.ui.message.success('取消排队成功');
+      }
+
+    },
+    async queryOrderBtnClick() {
+      let result = await this.queryOrder();
+      await this.$confirm(`确定取消[${result.persons.join(',')}]从[${result.startStr}]到[${result.endStr}]的车票吗?<br/><font color="red">（该车次[${result.trainCount}]的车票已被锁定,取消后将可能无法再抢到该车票）</font>`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        dangerouslyUseHTMLString: true,
+        center: true
+      });
+      let cancelResult = await this.cancelOrder(result.orderId);
+      if (cancelResult) {
+        Core.ui.message.success('取消订单成功');
       }
     },
     addPersonBtnClick() {

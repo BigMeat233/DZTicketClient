@@ -292,6 +292,55 @@ class Network {
     Http.post(funcName, params, success, failure);
   }
 
+  static queryOrder(successCB) {
+    let funcName = '/QueryOrder.do';
+    let params = {
+      otnId: Core.local.getItem('otnId')
+    };
+    Core.ui.loading.show();
+    let success = data => {
+      Core.ui.loading.close();
+      let code = data.HEAD.code;
+      let msg = data.HEAD.msg;
+      if (code === '111111') {
+        let orderInfo = data.BODY.orderInfo;
+        successCB(orderInfo);
+      } else {
+        Core.ui.message.warn(msg);
+      }
+    };
+    let failure = (err) => {
+      Core.ui.loading.close();
+      Core.ui.message.error('网络错误');
+    };
+    Http.post(funcName, params, success, failure);
+  }
+
+  static cancelOrder(orderId, successCB) {
+    let funcName = '/CancelOrder.do';
+    let params = {
+      otnId: Core.local.getItem('otnId'),
+      orderId
+    };
+    Core.ui.loading.show();
+    let success = data => {
+      Core.ui.loading.close();
+      let code = data.HEAD.code;
+      let msg = data.HEAD.msg;
+      if (code === '111111') {
+        successCB(true);
+      } else {
+        Core.ui.message.warn(msg);
+        successCB(false);
+      }
+    };
+    let failure = (err) => {
+      Core.ui.loading.close();
+      Core.ui.message.error('网络错误');
+    };
+    Http.post(funcName, params, success, failure);
+  }
+
   static destroy(successCB) {
     let funcName = '/Destroy.do';
     let params = {
