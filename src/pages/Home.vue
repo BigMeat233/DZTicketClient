@@ -320,7 +320,7 @@ export default {
         <br />
         <font color="red">（取消后将可能无法再抢到此车票）</font>
         <br />
-        总价：${result.price}
+        总价：${result.price}元
         <br />
         车次：${result.trainCount}
         <br />
