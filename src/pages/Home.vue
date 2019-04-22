@@ -324,9 +324,9 @@ export default {
         <br />
         车次：${result.trainCount}
         <br />
-        时间：${result.startTime} - ${result.endTime}
-        <br />
         方向：${result.startStr} - ${result.endStr}
+        <br />
+        时间：${result.trainDate} | ${result.startTime} - ${result.endTime}
         <br />
         ------------------------
       `;
