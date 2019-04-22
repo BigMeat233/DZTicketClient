@@ -314,7 +314,26 @@ export default {
     },
     async queryOrderBtnClick() {
       let result = await this.queryOrder();
-      await this.$confirm(`确定取消[${result.persons.join(',')}]从[${result.startStr}]到[${result.endStr}]的车票吗?<br/><font color="red">（该车次[${result.trainCount}]的车票已被锁定,取消后将可能无法再抢到该车票）</font>`, '提示', {
+      console.log(result);
+      let htmlStr = `
+        确定<font color="red">取消</font>当前已锁定的车票吗?
+        <br />
+        <font color="red">（取消后将可能无法再抢到此车票）</font>
+        <br />
+        总价：${result.price}
+        <br />
+        车次：${result.trainCount}
+        <br />
+        时间：${result.startTime} - ${result.endTime}
+        <br />
+        方向：${result.startStr} - ${result.endStr}
+        <br />
+        ------------------------
+      `;
+      result.tickets.forEach((ticket, index) => {
+        htmlStr += `<br />${index + 1}. ${ticket.personName}： ${ticket.seatTypeName} | ${ticket.coach}车${ticket.seat} | ${ticket.price}元`;
+      });
+      await this.$confirm(htmlStr, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         dangerouslyUseHTMLString: true,
