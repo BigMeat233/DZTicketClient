@@ -210,7 +210,7 @@ class Network {
     Http.post(funcName, params, success, failure);
   }
 
-  static orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, successCB) {
+  static orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, seatLocations, successCB) {
     let funcName = '/OrderTicket.do';
     let params = {
       otnId: Core.local.getItem('otnId'),
@@ -224,6 +224,7 @@ class Network {
       location,
       ticketType,
       personInfos,
+      seatLocations,
     };
     Core.ui.loading.show();
     let success = data => {

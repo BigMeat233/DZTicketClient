@@ -18,6 +18,22 @@
       :close-on-click-modal="false"
     >
       <div class="personContainerDiv">
+        <el-select
+          v-model="seatLocation.selectedLocations"
+          :placeholder="seatLocation.placeholder"
+          multiple
+          :multiple-limit="seatLocation.selectorLimit"
+          slot="title"
+          style="width: 100%"
+          v-if="seatLocation.isShow"
+        >
+          <el-option
+            v-for="item in seatLocation.selectorItems"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          ></el-option>
+        </el-select>
         <person
           v-for="(person,index) in persons"
           v-model="persons[index]"
@@ -53,6 +69,7 @@ import AddPerson from '@/components/AddPerson';
 import Tickets from '@/components/Tickets';
 import Handler from '@/utils/Handler';
 import TicketConfig from '@/components/TicketConfig';
+import Macro from '@/utils/Macro';
 
 export default {
   name: 'Home',
@@ -83,12 +100,80 @@ export default {
       addPersonDialogVisble: false,
       ticketDialogVisible: false,
       persons: [],
+      seatLocation: {
+        isShow: false,
+        selectedLocations: [],
+        selectorItems: [],
+        selectorLimit: 0,
+        placeholder: '',
+      },
       ticketInfos: [],
       timer: null,
       autoQueryQueueTimer: null,
     };
   },
-  computed: {
+  watch: {
+    persons: {
+      deep: true,
+      handler(newValue, oldValue) {
+        // 当每个人都只有一种座位类型时展示选座
+        // 选中的人
+        const selectedPersons = newValue.filter((person) => person.isSelected);
+        // 1. 检查每个人的座位类型
+        let isUniqueSeatType = true;
+        for (let i = 0; i < selectedPersons.length; i++) {
+          const selectedPerson = selectedPersons[0]
+          if (selectedPerson.seatCodes.length !== 1) {
+            isUniqueSeatType = false;
+            break;
+          }
+        }
+        if (!isUniqueSeatType) {
+          // 此时无法选座
+          this.seatLocation = {
+            isShow: false,
+            selectedLocations: [],
+            selectorItems: [],
+            selectorLimit: 0,
+            placeholder: '',
+          };
+          return;
+        }
+        // 2. 每个人的座位类型唯一,将计算公共座位的类型
+        let commonSeatCodes = [];
+        if (selectedPersons.length !== 0) {
+          // 求选中人的座位交集
+          const seatCodesArr = selectedPersons.map((selectedPerson) => selectedPerson.seatCodes);
+          commonSeatCodes = seatCodesArr.reduce((result, seatCodes) => seatCodes.filter((seatCode) => result.indexOf(seatCode) !== -1));
+          // 过滤可选座的类型(只有商务座 一等座 二等座可以选座)
+          commonSeatCodes = commonSeatCodes.filter((commonSeatCode) => Macro.seatLocations.findIndex((seatLocation) => seatLocation.seatCode === commonSeatCode) !== -1);
+        }
+        // 如果公共座位类型不为1个,此时不可以选座
+        if (commonSeatCodes.length !== 1) {
+          // 此时无法选座
+          this.seatLocation = {
+            isShow: false,
+            selectedLocations: [],
+            selectorItems: [],
+            selectorLimit: 0,
+            placeholder: '',
+          };
+        }
+        // 公共座位类型为1个时可以选座
+        else {
+          // 此时可以选座
+          const seatCode = commonSeatCodes[0];
+          const seatLocation = Macro.seatLocations.find((seatLocation) => seatLocation.seatCode === seatCode);
+          this.seatLocation = Object.assign({}, this.seatLocation, {
+            isShow: true,
+            selectorItems: seatLocation.locations,
+            selectorLimit: selectedPersons.length,
+            placeholder: `请选择[${seatLocation.seatName}]的位置`
+          });
+        }
+
+      }
+    },
   },
   async mounted() {
     this.autoQueryQueueTimer = setInterval(() => { if (this.ticketConfig.isAutoCommit) { this.queryQueue() } }, 10000);
@@ -128,9 +213,9 @@ export default {
         });
       });
     },
-    orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos) {
+    orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, seatLocations) {
       return new Promise((resolve, reject) => {
-        Network.orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, (result) => {
+        Network.orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, seatLocations, (result) => {
           resolve(result);
         });
       });
@@ -280,7 +365,7 @@ export default {
       if (persons.length === 0) {
         Core.ui.message.error('余票不足');
       } else {
-        let result = await this.orderTicket(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons);
+        let result = await this.orderTicket(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons, this.seatLocation.selectedLocations.join(''));
         if (result.result) {
           Core.ui.message.success(`下单成功,当前余票:[${result.queueInfo.ticket}],队列:[${result.queueInfo.count},${result.queueInfo.countT}]`);
           setTimeout(() => { this.queryQueueBtnClick() }, 1000);
@@ -381,7 +466,7 @@ export default {
         Core.ui.message.error('余票不足');
         return;
       }
-      let result = await this.orderTicket(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons);
+      let result = await this.orderTicket(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons, this.seatLocation.selectedLocations.join(''));
       if (result.result) {
         Core.ui.message.success(`下单成功,当前余票:[${result.queueInfo.ticket}],队列:[${result.queueInfo.count},${result.queueInfo.countT}]`);
         setTimeout(() => { this.queryQueueBtnClick() }, 1000);

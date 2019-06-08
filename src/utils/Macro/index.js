@@ -20,6 +20,48 @@ class Macro {
       { label: '护照', value: 'B' },
       { label: '外国人永久居留身份证', value: 'H' }
     ];
+    this.seatLocations = [
+      {
+        seatCode: '9',
+        seatName: '商务座',
+        locations: [
+          { label: '1A', value: '1A' },
+          { label: '1C', value: '1C' },
+          { label: '1F', value: '1F' },
+          { label: '2A', value: '2A' },
+          { label: '2C', value: '2C' },
+          { label: '2F', value: '2F' },
+        ]
+      }, {
+        seatCode: 'M',
+        seatName: '一等座',
+        locations: [
+          { label: '1A', value: '1A' },
+          { label: '1C', value: '1C' },
+          { label: '1D', value: '1D' },
+          { label: '1F', value: '1F' },
+          { label: '2A', value: '2A' },
+          { label: '2C', value: '2C' },
+          { label: '2D', value: '2D' },
+          { label: '2F', value: '2F' },
+        ]
+      }, {
+        seatCode: 'O',
+        seatName: '二等座',
+        locations: [
+          { label: '1A', value: '1A' },
+          { label: '1B', value: '1B' },
+          { label: '1C', value: '1C' },
+          { label: '1D', value: '1D' },
+          { label: '1F', value: '1F' },
+          { label: '2A', value: '2A' },
+          { label: '2B', value: '2B' },
+          { label: '2C', value: '2C' },
+          { label: '2D', value: '2D' },
+          { label: '2F', value: '2F' },
+        ]
+      }
+    ];
   }
 }
 
