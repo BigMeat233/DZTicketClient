@@ -108,22 +108,18 @@ class Network {
       date,
       ticketType
     };
-    Core.ui.loading.show();
     let success = data => {
-      Core.ui.loading.close();
       let code = data.HEAD.code;
       let msg = data.HEAD.msg;
       if (code === '111111') {
         let ticketInfos = data.BODY.ticketInfos;
         successCB(ticketInfos);
       } else {
-        Core.ui.message.warn(msg);
         successCB([]);
       }
     };
     let failure = err => {
-      Core.ui.loading.close();
-      Core.ui.message.error('网络错误');
+      successCB([]);
     };
     Http.post(funcName, params, success, failure);
   }
@@ -226,45 +222,38 @@ class Network {
       personInfos,
       seatLocations,
     };
-    Core.ui.loading.show();
     let success = data => {
-      Core.ui.loading.close();
       let code = data.HEAD.code;
       let msg = data.HEAD.msg;
       if (code === '111111') {
         successCB({ result: true, queueInfo: data.BODY.queueInfo });
       } else {
-        successCB({ result: false });
-        Core.ui.message.warn(msg);
+        successCB({ result: false, err: msg });
       }
     };
     let failure = (err) => {
-      Core.ui.loading.close();
-      Core.ui.message.error('网络错误');
+      successCB({ result: false, err: '网络错误' });
     };
     Http.post(funcName, params, success, failure);
   }
 
-  static queryQueue(successCB) {
+  static queryQueue(successCB, failureCB) {
     let funcName = '/QueryQueue.do';
     let params = {
       otnId: Core.local.getItem('otnId')
     };
-    Core.ui.loading.show();
     let success = data => {
-      Core.ui.loading.close();
       let code = data.HEAD.code;
       let msg = data.HEAD.msg;
       if (code === '111111') {
         let queueInfo = data.BODY.queueInfo;
         successCB(queueInfo);
       } else {
-        Core.ui.message.warn(msg);
+        failureCB('1', msg);
       }
     };
     let failure = (err) => {
-      Core.ui.loading.close();
-      Core.ui.message.error('网络错误');
+      failureCB('0', '网络错误');
     };
     Http.post(funcName, params, success, failure);
   }
@@ -282,13 +271,12 @@ class Network {
       if (code === '111111') {
         successCB(true);
       } else {
-        Core.ui.message.warn(msg);
-        successCB(false);
+        successCB(false, msg);
       }
     };
     let failure = (err) => {
       Core.ui.loading.close();
-      Core.ui.message.error('网络错误');
+      successCB(false, '网络错误');
     };
     Http.post(funcName, params, success, failure);
   }
@@ -358,6 +346,53 @@ class Network {
       }
     };
     let failure = (err) => {
+      Core.ui.message.error('网络错误');
+    };
+    Http.post(funcName, params, success, failure);
+  }
+
+  static indexStationNames(index, successCB) {
+    let funcName = '/IndexStationNames.do';
+    let params = {
+      index,
+    };
+    let success = (data) => {
+      let code = data.HEAD.code;
+      let msg = data.HEAD.msg;
+      if (code === '111111') {
+        let stationNames = data.BODY.stationNames;
+        successCB(stationNames);
+      } else {
+        successCB([]);
+      }
+    };
+    let failure = (err) => {
+    };
+    Http.post(funcName, params, success, failure);
+  }
+
+  static queryStationStops(trainNo, startStation, endStation, date, successCB) {
+    let funcName = '/QueryStationStops.do';
+    let params = {
+      trainNo,
+      startStation,
+      endStation,
+      date,
+    };
+    Core.ui.loading.show();
+    let success = (data) => {
+      Core.ui.loading.close();
+      let code = data.HEAD.code;
+      let msg = data.HEAD.msg;
+      if (code === '111111') {
+        let stationStops = data.BODY.stationStops;
+        successCB(stationStops);
+      } else {
+        Core.ui.message.warn(msg);
+      }
+    };
+    let failure = (err) => {
+      Core.ui.loading.close();
       Core.ui.message.error('网络错误');
     };
     Http.post(funcName, params, success, failure);

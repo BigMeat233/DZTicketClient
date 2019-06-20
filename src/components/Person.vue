@@ -17,7 +17,7 @@
         :value="seatType.value"
       ></el-option>
     </el-select>
-    <el-button type="danger" icon="el-icon-delete" circle @click.native="onDeleteBtnClick"></el-button>
+    <el-button type="danger" icon="el-icon-delete" circle @click.native="onDeleteBtnClick($event)"></el-button>
   </div>
 </template>
 <script>
@@ -62,8 +62,11 @@ export default {
         Core.ui.message.warn('请先选择座位类型');
       }
     },
-    onDeleteBtnClick() {
-      this.$emit('onDelete', this.person);
+    onDeleteBtnClick(event) {
+      event.stopPropagation();
+      Core.ui.box.confirm('确定删除', '确定要删除该乘客吗?(一旦删除不可恢复)', () => {
+        this.$emit('onDelete', this.person);
+      }, () => { });
     }
   },
 }
@@ -80,6 +83,9 @@ export default {
   align-items: center;
   border: 1px solid rgba(0, 0, 0, 0);
   transition: border 0.2s;
+  padding-left: 20px;
+  padding-right: 20px;
+  box-sizing: border-box;
 }
 
 .isSelected {

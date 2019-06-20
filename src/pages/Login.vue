@@ -21,7 +21,7 @@
           size="mini"
           class="refreshBtn"
           @click.native="refreshBtnClick($event)"
-        ></el-button>
+        />
         <div
           v-for="(point,index) in points"
           :key="index"
@@ -57,8 +57,11 @@
         <p>Q4:刷票时提示起点站或终点站不存在?</p>
         <p>A4:需要务必保证起点站和终点站在12306系统中存在</p>
         <br>
-        <p>Q5:出票成功后怎么支付?</p>
-        <p>A5:需要登录12306进入我的订单进行支付</p>
+        <p>Q5:静默刷票卡住?</p>
+        <p>A5:打开[刷票日志],若日志长时间不变化说明未在刷票,尝试刷新页面后再次进行刷票</p>
+        <br>
+        <p>Q6:出票成功后怎么支付?</p>
+        <p>A6:需要手机或者PC登录12306进入我的订单进行支付</p>
       </div>
     </el-dialog>
   </div>
@@ -192,7 +195,7 @@ export default {
   text-decoration: underline;
 }
 .tipDiv {
-  margin-top: 80px;
+  margin-top: 30px;
   font-size: xx-large;
   color: orange;
 }

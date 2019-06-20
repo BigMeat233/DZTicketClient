@@ -9,21 +9,58 @@
           v-model="ticketConfig.queryInterval"
           clearable
           class="formItemInput"
-          placeholder="刷票间隔(单位:毫秒)"
+          placeholder="刷票间隔(单位:毫秒 推荐:500)"
         ></el-input>
         <el-switch v-model="ticketConfig.isAutoQuery" class="formItemSwitch"></el-switch>
       </el-form-item>
-      <el-form-item label="车次过滤">
+      <el-form-item label="期望车次">
         <el-input
           v-model="ticketConfig.trainLimit"
           clearable
           class="formItemInput"
-          placeholder="车次白名单(逗号隔开)"
+          placeholder="车次白名单(空格隔开 例:G1 G2 K1555)"
         ></el-input>
         <el-switch v-model="ticketConfig.isTrainLimit" class="formItemSwitch"></el-switch>
       </el-form-item>
-      <div class="tipDiv">Tip:自动提交功能将对搜索结果中的车次下单,务必结合白名单使用</div>
+      <el-form-item label="黑屋规则">
+        <el-input
+          v-model="ticketConfig.blackCount"
+          clearable
+          class="formItemInput"
+          placeholder="下单/出票失败该次数后将不再对车次下单(单位:次  默认:3)"
+        ></el-input>
+      </el-form-item>
+      <el-form-item label="黑屋时间">
+        <el-input
+          v-model="ticketConfig.blackTime"
+          clearable
+          class="formItemInput"
+          placeholder="触发黑屋规则在该时间内不会对该车次下单(单位:秒  默认:120)"
+        ></el-input>
+      </el-form-item>
     </el-form>
+    <div class="configTipDiv">
+      <div class="textDiv1">静默刷票流程</div>
+      <div class="textDiv2">
+        <span class="dangerSpan">[登录]</span> →
+        <span class="dangerSpan">填写车票站台、日期</span> →
+        <span class="dangerSpan">选择乘客及座位</span> → 点击
+        <span class="dangerSpan">[开始刷票]</span>
+        <br>→ 在表格中选择
+        <span class="dangerSpan">[期望的车次(空格隔开)]</span> → 打开
+        <span class="dangerSpan">[刷票配置]</span> → 打开
+        <span class="dangerSpan">[自动刷票]</span>开关
+        <br>→ 配置
+        <span class="dangerSpan">[刷票间隔]</span>、
+        <span class="dangerSpan">[期望车次]</span>、
+        <span class="dangerSpan">[黑屋规则和时间]</span> → 关闭
+        <span class="dangerSpan">[刷票配置]</span> → 点击
+        <span class="dangerSpan">[开始刷票]</span>
+        <br>→ 此时即开启静默刷票(非卡住),成功后有
+        <span class="dangerSpan">[弹框提示]</span>可打开
+        <span class="dangerSpan">[刷票日志]</span>进行监控
+      </div>
+    </div>
   </div>
 </template>
 
@@ -34,8 +71,13 @@ export default {
   computed: {
     ticketConfig: {
       get() { return this.value },
-      set(newValue) { this.$emit('input', newValue) },
     },
+  },
+  methods: {
+    filterNum(value) {
+      let result = value.replace(/[^\d]+/, '');
+      return result;
+    }
   },
   watch: {
     'ticketConfig.isAutoQuery': {
@@ -65,7 +107,7 @@ export default {
           this.ticketConfig.isAutoCommit = false;
         }
       }
-    },
+    }
   },
 }
 </script>
@@ -77,7 +119,7 @@ export default {
 
 .ticketDialog > .el-dialog__body {
   text-align: left;
-  height: 240px;
+  height: 450px;
 }
 
 .formItemInput {
@@ -88,9 +130,27 @@ export default {
   margin-left: 20px;
 }
 
-.tipDiv {
+.configTipDiv {
+  width: 100%;
+  height: 50px;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: row;
+}
+
+.textDiv1 {
+  width: 25%;
+  margin-left: -12px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.textDiv2 {
+  flex: 1;
+  padding-left: 25px;
+}
+
+.dangerSpan {
+  color: red;
 }
 </style>

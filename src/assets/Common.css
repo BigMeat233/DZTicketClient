@@ -1,4 +1,5 @@
-.formRow {}
+.formRow {
+}
 
 .formCol {
   height: 55px;
@@ -41,4 +42,27 @@
 
 .el-form-item__error {
   padding-left: 15px;
+}
+
+.recordDialog > .el-dialog__body {
+  height: 450px;
+}
+
+.personDialog > .el-dialog__body {
+  height: 450px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(254, 228, 190);
+  border-radius: 3px;
+  transition: background 0.25s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(253, 200, 128);
 }

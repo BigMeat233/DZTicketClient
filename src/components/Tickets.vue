@@ -4,12 +4,16 @@
       :data="ticketInfosTemp"
       :border="true"
       :stripe="true"
-      :style="{width:'100%',height:'100%'}"
-      height="100%"
       :cell-style="cellStyleCallBack"
+      style="height: 100%"
+      height="0"
     >
       <el-table-column label="车次" prop="trainCount" header-align="center" align="center" fixed></el-table-column>
-      <el-table-column label="站台" prop="station" header-align="center" align="center"></el-table-column>
+      <el-table-column label="站台" prop="station" header-align="center" align="center">
+        <template slot-scope="scope">
+          <div @click="onStationClick(scope.row)">{{scope.row.station}}</div>
+        </template>
+      </el-table-column>
       <el-table-column label="日期" prop="date" header-align="center" align="center"></el-table-column>
       <el-table-column label="时间" prop="time" header-align="center" align="center"></el-table-column>
       <el-table-column label="商务座" prop="superSeat" header-align="center" align="center"></el-table-column>
@@ -49,11 +53,15 @@ export default {
       let trainInfo = Handler.toTrainInfo(ticketDisplayInfo);
       this.$emit('onOrder', trainInfo);
     },
+    onStationClick(ticketDisplayInfo) {
+      let trainInfo = Handler.toTrainInfo(ticketDisplayInfo);
+      this.$emit('onStationClick', trainInfo);
+    },
     cellStyleCallBack(loc) {
-      var key = loc.column.property;
-      var rowIndex = loc.rowIndex;
-      var columnIndex = loc.columnIndex;
-      var value = this.ticketInfos[rowIndex][key];
+      let key = loc.column.property;
+      let rowIndex = loc.rowIndex;
+      let columnIndex = loc.columnIndex;
+      let value = this.ticketInfos[rowIndex][key];
       if (columnIndex > 3 && columnIndex < 14) {
         if (value === '无') {
           return {
@@ -86,6 +94,5 @@ export default {
   flex: 1;
   justify-content: center;
   align-items: center;
-  overflow: scroll;
 }
 </style>

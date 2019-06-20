@@ -1,3 +1,5 @@
+import Macro from '@/utils/Macro';
+
 class Handler {
   static toTicketDisplayInfo(ticketInfo) {
     return {
@@ -37,6 +39,7 @@ class Handler {
     let startN = ticketDisplayInfo.startN;
     let endN = ticketDisplayInfo.endN;
     let date = ticketDisplayInfo.date.substring(0, 4) + '-' + ticketDisplayInfo.date.substring(4, 6) + '-' + ticketDisplayInfo.date.substring(6, 8);
+    let time = ticketDisplayInfo.time;
     let superSeat = ticketDisplayInfo.superSeat;// 商务座
     let firSeat = ticketDisplayInfo.firSeat;// 一等座
     let secSeat = ticketDisplayInfo.secSeat;// 二等座
@@ -59,6 +62,7 @@ class Handler {
       endS,
       endN,
       date,
+      time,
       superSeat,
       firSeat,
       secSeat,
@@ -126,6 +130,94 @@ class Handler {
       return 10;
     } else {
       return parseInt(amountStr);
+    }
+  }
+
+  static updatePersons(oldPersonInfos, newPersonInfos) {
+    const persons = newPersonInfos.map((newPersonInfo) => {
+      let isExisted = false;
+      for (let i = 0; i < oldPersonInfos.length; i++) {
+        let oldPersonInfo = oldPersonInfos[i];
+        if (newPersonInfo.certNo === oldPersonInfo.certNo) {
+          isExisted = true;
+          return {
+            isSelected: oldPersonInfo.isSelected,
+            name: newPersonInfo.name,
+            certCode: newPersonInfo.certCode,
+            certType: newPersonInfo.certName,
+            certNo: newPersonInfo.certNo,
+            typeCode: newPersonInfo.typeCode,
+            typeName: newPersonInfo.typeName,
+            seatCodes: oldPersonInfo.seatCodes,
+            phone: newPersonInfo.phone
+          };
+        }
+      }
+      if (!isExisted) {
+        return {
+          isSelected: false,
+          name: newPersonInfo.name,
+          certCode: newPersonInfo.certCode,
+          certType: newPersonInfo.certName,
+          certNo: newPersonInfo.certNo,
+          typeCode: newPersonInfo.typeCode,
+          typeName: newPersonInfo.typeName,
+          seatCodes: []
+        };
+      }
+    });
+    return persons;
+  }
+
+  static getSeatLocation(persons) {
+    // 当每个人都只有一种座位类型时展示选座
+    // 选中的人
+    const selectedPersons = persons.filter((person) => person.isSelected);
+    const defaultSeatLocation = {
+      isShow: false,
+      selectedLocations: [],
+      selectorItems: [],
+      selectorLimit: 0,
+      placeholder: ''
+    };
+    // 1. 检查每个人的座位类型
+    let isUniqueSeatType = true;
+    for (let i = 0; i < selectedPersons.length; i++) {
+      const selectedPerson = selectedPersons[0]
+      if (selectedPerson.seatCodes.length !== 1) {
+        isUniqueSeatType = false;
+        break;
+      }
+    }
+    if (!isUniqueSeatType) {
+      // 此时无法选座
+      return defaultSeatLocation;
+    }
+    // 2. 每个人的座位类型唯一,将计算公共座位的类型
+    let commonSeatCodes = [];
+    if (selectedPersons.length !== 0) {
+      // 求选中人的座位交集
+      const seatCodesArr = selectedPersons.map((selectedPerson) => selectedPerson.seatCodes);
+      commonSeatCodes = seatCodesArr.reduce((result, seatCodes) => seatCodes.filter((seatCode) => result.indexOf(seatCode) !== -1));
+      // 过滤可选座的类型(只有商务座 一等座 二等座可以选座)
+      commonSeatCodes = commonSeatCodes.filter((commonSeatCode) => Macro.seatLocations.findIndex((seatLocation) => seatLocation.seatCode === commonSeatCode) !== -1);
+    }
+    // 如果公共座位类型不为1个,此时不可以选座
+    if (commonSeatCodes.length !== 1) {
+      // 此时无法选座
+      return defaultSeatLocation;
+    }
+    // 公共座位类型为1个时可以选座
+    else {
+      // 此时可以选座
+      const seatCode = commonSeatCodes[0];
+      const seatLocation = Macro.seatLocations.find((seatLocation) => seatLocation.seatCode === seatCode);
+      return {
+        isShow: true,
+        selectorItems: seatLocation.locations,
+        selectorLimit: selectedPersons.length,
+        placeholder: `请选择[${seatLocation.seatName}]的位置(空余座位少时请不要选座)`
+      };
     }
   }
 }

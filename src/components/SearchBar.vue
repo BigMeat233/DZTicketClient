@@ -8,12 +8,23 @@
           <label>起点站台:</label>
         </div>
         <div class="formItemField">
-          <el-input
+          <el-select
             v-model="ticketLimit.startStation"
-            placeholder="站台中文须符合12306"
+            filterable
+            remote
+            placeholder="请输入简拼/全拼/汉字"
             class="formInput"
+            :remote-method="startStation.onInputChange"
+            :loading="startStation.loading"
             clearable
-          ></el-input>
+          >
+            <el-option
+              v-for="item in startStation.stationNames"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         </div>
       </el-col>
       <!-- 列2 -->
@@ -22,12 +33,23 @@
           <label>终点站台:</label>
         </div>
         <div class="formItemField">
-          <el-input
+          <el-select
             v-model="ticketLimit.endStation"
-            placeholder="站台中文须符合12306"
+            filterable
+            remote
+            placeholder="请输入简拼/全拼/汉字"
             class="formInput"
+            :remote-method="endStation.onInputChange"
+            :loading="endStation.loading"
             clearable
-          ></el-input>
+          >
+            <el-option
+              v-for="item in endStation.stationNames"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         </div>
       </el-col>
       <!-- 列3 -->
@@ -66,16 +88,66 @@
   </div>
 </template>
 <script>
+import Network from '@/utils/Network';
+import _ from 'lodash';
 export default {
   name: 'SearchBar',
   props: ['value'],
+  mounted() {
+    this.startStation.onInputChange = this.createDebounceFunction(this.refreshStartStationNames);
+    this.endStation.onInputChange = this.createDebounceFunction(this.refreshEndStationNames);
+  },
   data() {
     return {
       ticketTypes: [
         { label: '成人', value: 'adult' },
         // { label: '学生', value: 'student' }
-      ]
+      ],
+      startStation: {
+        loading: false,
+        stationNames: [],
+        onInputChange: null,
+      },
+      endStation: {
+        loading: false,
+        stationNames: [],
+        onInputChange: null,
+      },
     };
+  },
+  methods: {
+    indexStationNames(index) {
+      return new Promise((resolve, reject) => {
+        Network.indexStationNames(index, (stationNames) => {
+          resolve(stationNames);
+        });
+      });
+    },
+    async refreshStartStationNames(index) {
+      this.startStation.loading = true;
+      const stationNames = await this.indexStationNames(index);
+      this.startStation.loading = false;
+      this.startStation.stationNames = stationNames.map((stationName) => {
+        return {
+          label: stationName,
+          value: stationName
+        };
+      });
+    },
+    async refreshEndStationNames(index) {
+      this.endStation.loading = true;
+      const stationNames = await this.indexStationNames(index);
+      this.endStation.loading = false;
+      this.endStation.stationNames = stationNames.map((stationName) => {
+        return {
+          label: stationName,
+          value: stationName
+        };
+      });
+    },
+    createDebounceFunction(func) {
+      return _.debounce(func, 100);
+    },
   },
   computed: {
     ticketLimit: {
@@ -86,6 +158,9 @@ export default {
 }
 </script>
 <style scoped>
+.formInput {
+  width: 100%;
+}
 </style>
 
 

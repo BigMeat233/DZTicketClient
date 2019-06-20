@@ -32,6 +32,18 @@ class Macro {
           { label: '2C - 靠过道', value: '2C' },
           { label: '2F - 靠窗和过道', value: '2F' },
         ]
+      },
+      {
+        seatCode: 'P',
+        seatName: '特等座',
+        locations: [
+          { label: '1A - 靠窗', value: '1A' },
+          { label: '1C - 靠过道', value: '1C' },
+          { label: '1F - 靠窗和过道', value: '1F' },
+          { label: '2A - 靠窗', value: '2A' },
+          { label: '2C - 靠过道', value: '2C' },
+          { label: '2F - 靠窗和过道', value: '2F' },
+        ]
       }, {
         seatCode: 'M',
         seatName: '一等座',
