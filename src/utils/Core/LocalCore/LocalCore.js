@@ -10,7 +10,7 @@ function LocalCore() {
   this.removeAll = _removeAll;
 
   function _setItem(key, value) {
-    localStorage.setItem(key,value);
+    localStorage.setItem(key, value);
   }
 
   function _getItem(key) {

@@ -88,7 +88,7 @@
   </div>
 </template>
 <script>
-import Network from '@/utils/Network';
+import AsyncFuncs from '@/utils/AsyncFuncs';
 import _ from 'lodash';
 export default {
   name: 'SearchBar',
@@ -116,16 +116,9 @@ export default {
     };
   },
   methods: {
-    indexStationNames(index) {
-      return new Promise((resolve, reject) => {
-        Network.indexStationNames(index, (stationNames) => {
-          resolve(stationNames);
-        });
-      });
-    },
     async refreshStartStationNames(index) {
       this.startStation.loading = true;
-      const stationNames = await this.indexStationNames(index);
+      const stationNames = await AsyncFuncs.indexStationNamesWithoutLoadingAndTips(index);
       this.startStation.loading = false;
       this.startStation.stationNames = stationNames.map((stationName) => {
         return {
@@ -136,7 +129,7 @@ export default {
     },
     async refreshEndStationNames(index) {
       this.endStation.loading = true;
-      const stationNames = await this.indexStationNames(index);
+      const stationNames = await AsyncFuncs.indexStationNamesWithoutLoadingAndTips(index);
       this.endStation.loading = false;
       this.endStation.stationNames = stationNames.map((stationName) => {
         return {

@@ -201,7 +201,7 @@ export default {
     },
   },
   async mounted() {
-    this.autoQueryQueueInterval = setInterval(() => { this.isAutoQuering && AsyncFuncs.queryQueueWithoutLoading() }, 10000);
+    this.autoQueryQueueInterval = setInterval(() => { this.isAutoQuering && AsyncFuncs.queryQueueWithoutLoadingAndTips() }, 10000);
     this.stoppableLoopQueueStateFunction = new StoppableLoopFunction(this.loopQueueStateFunction, 1000);
     this.stoppableLoopQueryTicketFunction = new StoppableLoopFunction(this.loopQueryTicketFunction, 1000);
   },
@@ -209,8 +209,6 @@ export default {
     clearInterval(this.autoQueryQueueInterval);
     this.stoppableLoopQueryTicketFunction.pause(0);
     this.stoppableLoopQueueStateFunction.pause(0);
-    // let result = await this.destroy();
-    // Core.local.removeItem('otnId');
   },
   methods: {
     // 创建日志
@@ -228,10 +226,12 @@ export default {
     stopAutoQuery() {
       this.ticketConfig.isAutoCommit = false;
       this.ticketConfig.isAutoQuery = false;
-      this.ticketConfig.isTrainLimit = false;
       this.isAutoQuering = false;
       this.stoppableLoopQueryTicketFunction.pause(0);
       this.stoppableLoopQueueStateFunction.pause(0);
+    },
+    stopAutoQueryAndCancelQueue() {
+      this.stopAutoQuery();
       AsyncFuncs.cancelQueueWithoutTip();
     },
     // 设置起点站
@@ -257,7 +257,7 @@ export default {
     },
     // 关闭自动查询 
     onStopQueryBtnClick() {
-      this.stopAutoQuery();
+      this.stopAutoQueryAndCancelQueue();
     },
     // 刷票日志点击
     onRecordBtnClick() {
@@ -279,7 +279,7 @@ export default {
       const result = isLoading ?
         await AsyncFuncs.queryQueue()
         :
-        await AsyncFuncs.queryQueueWithoutLoading();
+        await AsyncFuncs.queryQueueWithoutLoadingAndTips();
       // 开始轮询队列状态
       isNeedLogger && this.createLogContent(`开始轮询队列状态...`);
       console.log(`开始轮询队列状态...`);
@@ -343,7 +343,7 @@ export default {
           const result = isLoading ?
             await AsyncFuncs.orderTicket(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons, this.seatLocation.selectedLocations.join(''))
             :
-            await AsyncFuncs.orderTicketWithoutLoading(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons, this.seatLocation.selectedLocations.join(''));
+            await AsyncFuncs.orderTicketWithoutLoadingAndTips(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons, this.seatLocation.selectedLocations.join(''));
           // 请求成功 - 解析结果
           if (result.result) {
             // 下单成功
@@ -411,8 +411,12 @@ export default {
       // 自动提交
       // 若自动提交关闭,则自动刷票一定是关闭状态
       if (!this.ticketConfig.isAutoCommit) {
-        isAutoQuery && this.createLogContent(`自动提交为关闭状态,中断静默刷票`);
-        this.stopAutoQuery();
+        if (isAutoQuery) {
+          this.createLogContent(`自动提交为关闭状态,中断静默刷票`);
+          this.stopAutoQueryAndCancelQueue();
+        } else {
+          this.stopAutoQuery();
+        }
         return;
       }
 
@@ -420,8 +424,12 @@ export default {
       let personInfos = this.persons.filter((person) => { return person.isSelected });
       if (personInfos.length === 0) {
         Core.ui.message.warn('请先选择需要抢票的乘客');
-        isAutoQuery && this.createLogContent(`未选择要刷票的乘客,中断静默刷票`);
-        this.stopAutoQuery();
+        if (isAutoQuery) {
+          this.createLogContent(`未选择要刷票的乘客,中断静默刷票`);
+          this.stopAutoQueryAndCancelQueue();
+        } else {
+          this.stopAutoQuery();
+        }
         return;
       }
 
@@ -451,7 +459,7 @@ export default {
           // 出票成功 - 停止自动刷票并弹框
           isAutoQuery && this.createLogContent(`出票成功!!!`);
           // 关闭自动查询将会改变data中this.ticketConfig.isAutoQuery的值
-          this.stopAutoQuery();
+          this.stopAutoQueryAndCancelQueue();
           Core.ui.box.alert('抢票成功', '抢票成功,请于30分钟内前往12306进行支付！！！', () => {
             window.open('https://www.12306.cn');
           });
@@ -515,9 +523,6 @@ export default {
     // 取消排队按钮点击
     async onCancelQueueBtnClick() {
       let result = await AsyncFuncs.cancelQueue();
-      if (result) {
-        Core.ui.message.success('取消排队成功');
-      }
     },
     // 查询订单按钮点击
     async onQueryOrderBtnClick() {
@@ -546,10 +551,7 @@ export default {
         dangerouslyUseHTMLString: true,
         center: true
       });
-      let cancelResult = await AsyncFuncs.cancelOrder(result.orderId);
-      if (cancelResult) {
-        Core.ui.message.success('取消订单成功');
-      }
+      await AsyncFuncs.cancelOrder(result.orderId);
     },
     // 选择乘客中添加乘客按钮点击
     onAddPersonBtnClick() {
@@ -564,7 +566,6 @@ export default {
     async onPersonInputFinish(personInfo) {
       let result = await AsyncFuncs.addPerson(personInfo.name, personInfo.sex, personInfo.certCode, personInfo.certNo, personInfo.personCode);
       if (result) {
-        Core.ui.message.success('添加乘客成功');
         this.addPersonDialogVisble = false;
         this.updatePersons();
         this.$refs.addPerson.reset();
@@ -574,7 +575,6 @@ export default {
     async onPersonDelete(personInfo) {
       let result = await AsyncFuncs.deletePerson(personInfo.name, personInfo.certCode, personInfo.certNo);
       if (result) {
-        Core.ui.message.success('删除乘客成功');
         this.updatePersons();
       }
     },
@@ -588,12 +588,12 @@ export default {
       }
       const ticketResult = await this.orderTicketAndLoopQueueState(true, [trainInfo], personInfos);
       if (ticketResult.result) {
-        this.stopAutoQuery();
+        this.stopAutoQueryAndCancelQueue();
         Core.ui.box.alert('抢票成功', `抢票成功,请于30分钟内前往12306进行支付！！！(出票时间:${Core.common.time.format(new Date(), 'yyyy-MM-dd HH:mm:ss')})`, () => {
           window.open('https://www.12306.cn');
         });
       } else {
-        this.stopAutoQuery();
+        this.stopAutoQueryAndCancelQueue();
         Core.ui.box.alert('抢票失败', '出票失败,请重新尝试！！', () => { });
       }
     },

@@ -69,7 +69,7 @@
 
 <script>
 import defaultImg from '@/assets/images/checkCodeImg.png';
-import Network from '@/utils/Network';
+import AsyncFuncs from '@/utils/AsyncFuncs';
 import Core from '@/utils/Core';
 export default {
   name: 'Login',
@@ -104,7 +104,7 @@ export default {
         return;
       }
       let answer = this.getAnswer();
-      let result = await this.login(this.userId, this.userPwd, answer);
+      let result = await AsyncFuncs.login(this.userId, this.userPwd, answer);
       if (result) {
         this.userId = '';
         this.userPwd = '';
@@ -133,41 +133,15 @@ export default {
       event.stopPropagation();
       this.points.splice(index, 1);
     },
-    initPage() {
-      return new Promise((resolve, reject) => {
-        Network.initPage((otnId) => {
-          resolve(otnId);
-        });
-      });
-    },
-    registerDevice() {
-      return new Promise((resolve, reject) => {
-        Network.registerDevice((result) => {
-          resolve(result);
-        });
-      });
-    },
-    getCheckCode() {
+    async getCheckCode() {
       this.points = [];
-      return new Promise((resolve, reject) => {
-        Network.getCheckCode((imgBase64) => {
-          this.checkCodeImg = imgBase64;
-          resolve(true);
-        });
-      });
+      this.checkCodeImg = await AsyncFuncs.getCheckCode();
     },
-    login(userId, userPwd, answer) {
-      return new Promise((resolve, reject) => {
-        Network.login(userId, userPwd, answer, (result) => {
-          resolve(result);
-        });
-      });
-    }
   },
   async mounted() {
-    await this.initPage();
-    await this.registerDevice();
-    await this.getCheckCode();
+    await AsyncFuncs.initPage();
+    await AsyncFuncs.registerDevice();
+    this.getCheckCode();
   }
 };
 </script>

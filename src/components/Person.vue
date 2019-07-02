@@ -7,6 +7,7 @@
       @change="onCheckBoxChange(value)"
     ></el-checkbox>
     <label class="personInfoText">{{person.name}}</label>
+    <label class="personInfoText">{{person.typeName}}</label>
     <label class="personInfoText">{{person.certType}}</label>
     <label class="personInfoText">{{person.certNo}}</label>
     <el-select v-model="person.seatCodes" placeholder="请选择座位类型" multiple>
@@ -54,12 +55,22 @@ export default {
         Core.ui.message.warn('请先选择座位类型');
         return;
       }
+      if (this.person.typeCode !== '1') {
+        this.person.isSelected = false;
+        Core.ui.message.warn('无法为非成人乘客购票');
+        return;
+      }
       this.person.isSelected = !this.person.isSelected;
     },
     onCheckBoxChange(value) {
       if (this.person.seatCodes.length === 0) {
         this.person.isSelected = false;
         Core.ui.message.warn('请先选择座位类型');
+      }
+      if (this.person.typeCode !== '1') {
+        this.person.isSelected = false;
+        Core.ui.message.warn('无法为非成人乘客购票');
+        return;
       }
     },
     onDeleteBtnClick(event) {

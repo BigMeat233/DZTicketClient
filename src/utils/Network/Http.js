@@ -12,12 +12,32 @@ class Http {
     this._request = Core.net.create(option);
   }
 
-  get(funcName, params, success, failure) {
-    this._request.get(funcName, params, success, failure);
+  get(funcName, params, options) {
+    const opt = options || { isLoading: true };
+    return new Promise((resolve) => {
+      opt.isLoading && Core.ui.loading.show();
+      this._request.get(funcName, params, (data) => {
+        opt.isLoading && Core.ui.loading.close();
+        resolve({ result: true, data });
+      }, (err) => {
+        opt.isLoading && Core.ui.loading.close();
+        resolve({ result: false, err });
+      });
+    });
   }
 
-  post(funcName, params, success, failure) {
-    this._request.post(funcName, params, success, failure);
+  post(funcName, params, options) {
+    const opt = options || { isLoading: true };
+    return new Promise((resolve) => {
+      opt.isLoading && Core.ui.loading.show();
+      this._request.post(funcName, params, (data) => {
+        opt.isLoading && Core.ui.loading.close();
+        resolve({ result: true, data });
+      }, (err) => {
+        opt.isLoading && Core.ui.loading.close();
+        resolve({ result: false, err });
+      });
+    });
   }
 }
 
