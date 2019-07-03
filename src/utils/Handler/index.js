@@ -149,7 +149,8 @@ class Handler {
             typeCode: newPersonInfo.typeCode,
             typeName: newPersonInfo.typeName,
             seatCodes: oldPersonInfo.seatCodes,
-            phone: newPersonInfo.phone
+            phone: newPersonInfo.phone,
+            secStr: newPersonInfo.secStr
           };
         }
       }
@@ -162,7 +163,9 @@ class Handler {
           certNo: newPersonInfo.certNo,
           typeCode: newPersonInfo.typeCode,
           typeName: newPersonInfo.typeName,
-          seatCodes: []
+          seatCodes: [],
+          phone: newPersonInfo.phone,
+          secStr: newPersonInfo.secStr,
         };
       }
     });
