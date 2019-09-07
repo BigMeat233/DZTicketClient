@@ -9,4 +9,9 @@ Service Project Github: https://github.com/BigMeat233/DZTicketService
 Github: https://github.com/BigMeat233/DZSuperFrame  
 Document: http://og.gl/doc  
 
+### Release Address
+Line1: http://vpn.og.gl/DZTicket.zip  
+Line2: http://d.og.gl/DZTicket.zip  
+Line3: http://og.gl/DZTicket.zip  
+
 ### Builder Based On Vue-Cli  

@@ -17,7 +17,7 @@
       @onRecordBtnClick="onRecordBtnClick"
     />
     <!-- 车票区域 -->
-    <tickets :ticketInfos="ticketInfos" @onOrder="onOrderTicket" @onStationClick="onStationClick"/>
+    <tickets :ticketInfos="ticketInfos" @onOrder="onOrderTicket" @onStationClick="onStationClick" />
     <!-- 选择乘客弹框 -->
     <el-dialog
       title="选择乘客"
@@ -61,7 +61,7 @@
         custom-class="addPersonDialog"
         :visible.sync="addPersonDialogVisble"
       >
-        <add-person ref="addPerson" @onPersonInputFinish="onPersonInputFinish"/>
+        <add-person ref="addPerson" @onPersonInputFinish="onPersonInputFinish" />
       </el-dialog>
     </el-dialog>
     <!-- 刷票配置弹框 -->
@@ -71,7 +71,7 @@
       custom-class="ticketDialog"
       :visible.sync="ticketDialogVisible"
     >
-      <ticket-config v-model="ticketConfig"/>
+      <ticket-config v-model="ticketConfig" />
     </el-dialog>
     <!-- 停靠站信息弹框 -->
     <el-dialog
@@ -95,7 +95,7 @@
       custom-class="blackListDialog"
       :visible.sync="blackDialogVisible"
     >
-      <black-list/>
+      <black-list />
     </el-dialog>
     <!-- 刷票日志 -->
     <el-dialog
@@ -382,6 +382,12 @@ export default {
       // 如果打开了自动刷票 - 显示停止刷票按钮
       if (isAutoQuery) {
         this.isAutoQuering = true;
+        // 如果当前时间不在6:00 - 23:00之间则直接退出
+        const currentHour = moment().hour();
+        if (currentHour < 6 || currentHour > 22) {
+          this.createLogContent(`当前时间不可刷票,将于06:00-23:00恢复`);
+          return;
+        }
         this.createLogContent(`请求日期:[${date}],起点:[${startStation}],终点:[${endStation}]的车票...`);
       }
 
