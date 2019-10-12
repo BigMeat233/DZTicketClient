@@ -22,7 +22,6 @@ function RequestManager(cfg) {
   function _get(funcName, params, success, failure) {
     var requestUrl = _baseUrl + funcName;
     var requestData = _interceptor(params);
-    console.log('GET -> ' + requestUrl);
     Vue.http
       .get(requestUrl, requestData, _options)
       .then((response) => {
@@ -35,7 +34,6 @@ function RequestManager(cfg) {
   function _post(funcName, params, success, failure) {
     var requestUrl = _baseUrl + funcName;
     var requestData = _interceptor(params);
-    console.log('POST -> ' + requestUrl);
     Vue.http
       .post(requestUrl, requestData, _options)
       .then((response) => {

@@ -13,9 +13,9 @@
     <div class="submitBtnDiv">
       <el-button type="primary" size="medium" @click.native="submitBtnClick($event)">登录</el-button>
     </div>
-    <div class="checkCodeAreaDiv">
+    <div class="checkCodeAreaDiv" v-if="isNeedImgCode">
       <div class="checkCodeDiv" @click="checkCodeDivClick($event)">
-        <img :src="checkCodeImg">
+        <img :src="checkCodeImg" />
         <el-button
           icon="el-icon-refresh"
           size="mini"
@@ -29,7 +29,7 @@
           class="pointDiv"
           @click="pointClick(index,$event)"
         >
-          <img src="@/assets/images/logo.png" height="27" width="27">
+          <img src="@/assets/images/logo.png" height="27" width="27" />
         </div>
       </div>
     </div>
@@ -47,19 +47,19 @@
       <div class="logDiv">
         <p>Q1:频繁刷票失败怎么办?</p>
         <p>A1:首先需要确定查票的日期没有放票,如果已放票则尝试返回登录页面重新登录</p>
-        <br>
+        <br />
         <p>Q2:出现订单预处理失败?</p>
         <p>A2:尝试再次下单,若一直出现说明已掉线,返回登录页面重新登录</p>
-        <br>
+        <br />
         <p>Q3:下单时提示请先选择需要抢票的乘客?</p>
         <p>A3:需要点击[添加乘客],在里面选座后点击该乘客,出现屎黄色框框才表示该乘客被选中</p>
-        <br>
+        <br />
         <p>Q4:刷票时提示起点站或终点站不存在?</p>
         <p>A4:需要务必保证起点站和终点站在12306系统中存在</p>
-        <br>
+        <br />
         <p>Q5:静默刷票卡住?</p>
         <p>A5:打开[刷票日志],若日志长时间不变化说明未在刷票,尝试刷新页面后再次进行刷票</p>
-        <br>
+        <br />
         <p>Q6:出票成功后怎么支付?</p>
         <p>A6:需要手机或者PC登录12306进入我的订单进行支付</p>
       </div>
@@ -79,7 +79,8 @@ export default {
       userPwd: '',
       points: [],
       checkCodeImg: defaultImg,
-      faqDialogVisble: false
+      faqDialogVisble: false,
+      isNeedImgCode: false,
     };
   },
   methods: {
@@ -99,7 +100,7 @@ export default {
         Core.ui.message.warn('请输入12306密码');
         return;
       }
-      if (this.points.length === 0) {
+      if (this.isNeedImgCode && this.points.length === 0) {
         Core.ui.message.warn('请往验证码上点狗头');
         return;
       }
@@ -139,9 +140,11 @@ export default {
     },
   },
   async mounted() {
-    await AsyncFuncs.initPage();
+    const { confInfo } = await AsyncFuncs.initPage();
+    const { isNeedImgCode } = confInfo;
+    this.isNeedImgCode = isNeedImgCode;
     await AsyncFuncs.registerDevice();
-    this.getCheckCode();
+    isNeedImgCode && this.getCheckCode();
   }
 };
 </script>
@@ -210,6 +213,7 @@ export default {
 
 .versionDiv {
   position: absolute;
+  z-index: -1;
   bottom: 0;
   left: 0;
   right: 0;

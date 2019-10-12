@@ -44,7 +44,14 @@ export default {
   },
   data() {
     return {
-      seatTypes: Macro.seatTypes,
+      seatTypes: Macro.seatTypes.filter((seatType) => {
+        return seatType.key !== '' &&
+          seatType.key !== 'noSeat' &&
+          seatType.key !== 'otherSeat';
+      }).map((seatType) => ({
+        value: seatType.code,
+        label: seatType.desc
+      })),
     };
   },
   methods: {

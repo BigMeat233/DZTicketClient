@@ -12,7 +12,7 @@
       <el-table-column label="到站时间" prop="arriveTime" header-align="center" align="center"/>
       <el-table-column label="出发时间" prop="startTime" header-align="center" align="center"/>
       <el-table-column label="停留时间" prop="stopoverTime" header-align="center" align="center"/>
-      <el-table-column label="操作" header-align="center">
+      <el-table-column label="操作" header-align="center" align="center">
         <template slot-scope="scope">
           <el-button
             size="small"

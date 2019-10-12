@@ -4,7 +4,7 @@ class Http {
   constructor() {
     let option = {
       id: 'REQ_01',
-      baseUrl: 'http://127.0.0.1:3000',
+      baseUrl: 'http://127.0.0.1:18234',
       // baseUrl: 'http://t.og.gl',
       timeout: 10000,
       interceptor: (params) => { return { MESSAGE: JSON.stringify(params) } },

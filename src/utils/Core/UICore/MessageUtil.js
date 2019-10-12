@@ -19,7 +19,7 @@ function MessageUtil() {
       showClose: showClose === undefined ? false : showClose,
       duration: duration === undefined ? 1500 : duration
     };
-    Message(opt);
+    return Message(opt);
   }
 
   function _info(msg, showClose, duration) {
@@ -29,7 +29,7 @@ function MessageUtil() {
       showClose: showClose === undefined ? false : showClose,
       duration: duration === undefined ? 1500 : duration
     };
-    Message(opt);
+    return Message(opt);
   }
 
   function _warn(msg, showClose, duration) {
@@ -39,7 +39,7 @@ function MessageUtil() {
       showClose: showClose === undefined ? false : showClose,
       duration: duration === undefined ? 1500 : duration
     };
-    Message(opt);
+    return Message(opt);
   }
 
   function _error(msg, showClose, duration) {
@@ -49,7 +49,7 @@ function MessageUtil() {
       showClose: showClose === undefined ? false : showClose,
       duration: duration === undefined ? 1500 : duration
     };
-    Message(opt);
+    return Message(opt);
   }
 }
 

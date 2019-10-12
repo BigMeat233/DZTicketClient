@@ -233,6 +233,94 @@ class Network {
       this.responseHandler(response, resolve);
     });
   }
+
+  static queryPrice(trainNo, date, startCode, endCode, seatTypeCodes, isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/QueryPrice.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+        trainNo,
+        date,
+        startCode,
+        endCode,
+        seatTypeCodes
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static queryAlternateRate(secStr, seatTypeCode, isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/QueryAlternateRate.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+        secStr,
+        seatTypeCode,
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static orderAlternates(dateTime, alternates, persons, isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/OrderAlternates.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+        dateTime,
+        alternates,
+        persons,
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static queryAlternateQueue(isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/QueryAlternateQueue.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static cancelAlternateQueue(isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/CancelAlternateQueue.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static queryAlternateOrder(isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/QueryAlternateOrder.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static cancelAlternateOrder(orderId, isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/CancelAlternateOrder.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+        orderId,
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
 }
 
 export default Network;
