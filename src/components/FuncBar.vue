@@ -5,7 +5,12 @@
     <el-button type="primary" class="formBtn" @click.native="btnClick(2)" v-if="!isAutoQuering">开始刷票</el-button>
     <el-button type="info" class="formBtn" @click.native="btnClick(3)" v-if="!isAutoQuering">排队情况</el-button>
     <el-button type="danger" class="formBtn" @click.native="btnClick(4)" v-if="!isAutoQuering">取消排队</el-button>
-    <el-button type="warning" class="formBtn" @click.native="btnClick(5)">选择乘客</el-button>
+    <el-badge :value="selectedPersonCount" class="personBadge">
+      <el-button type="warning" class="formBtn" @click.native="btnClick(5)">选择乘客</el-button>
+    </el-badge>
+    <el-badge :value="alternateCount" class="alternateBadge" v-show="alternateCount">
+      <el-button type="warning" class="formBtn alternateBtn" @click.native="btnClick(10)">候补座次</el-button>
+    </el-badge>
     <el-button
       circle
       icon="el-icon-tickets"
@@ -13,7 +18,7 @@
       v-if="!isAutoQuering"
       @click.native="btnClick(6)"
     />
-    <el-button type="info" icon="el-icon-house" circle @click.native="btnClick(8)" title="小黑屋"/>
+    <el-button type="info" icon="el-icon-house" circle @click.native="btnClick(8)" title="小黑屋" />
     <el-button
       type="danger"
       icon="el-icon-video-pause"
@@ -36,7 +41,7 @@
 <script>
 export default {
   name: 'FuncBar',
-  props: ['isAutoQuering'],
+  props: ['isAutoQuering', 'alternateCount', 'selectedPersonCount'],
   methods: {
     btnClick(index) {
       if (index === 0) {
@@ -59,6 +64,8 @@ export default {
         this.$emit('onBlackListBtnClick');
       } else if (index === 9) {
         this.$emit('onRecordBtnClick');
+      } else if (index === 10) {
+        this.$emit('onAlternateBtnClick');
       }
     }
   },
@@ -69,6 +76,15 @@ export default {
 .funcBar {
   padding-top: 10px;
   padding-bottom: 10px;
+  height: 45px;
   border-bottom: 1px dashed rgb(177, 177, 177);
+}
+
+.personBadge {
+  margin-left: 10px;
+}
+
+.alternateBadge {
+  margin-left: 10px;
 }
 </style>

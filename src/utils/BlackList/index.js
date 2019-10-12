@@ -5,51 +5,53 @@ const vueInfo = {
   name: 'BlackList',
   data() {
     return {
-      blackInfoMap: {},
+      blackList: [],
     };
   },
   watch: {
-    blackInfoMap: {
+    blackList: {
       handler(newValue) {
-        this.$emit('onMapChange', newValue);
+        this.$emit('onListChange', newValue);
       },
     },
   },
   methods: {
-    failure(trainInfo) {
-      const mapCopy = this.getBlackInfoMap();
-      const trainCount = trainInfo.trainCount;
-      if (mapCopy[trainCount]) {
-        mapCopy[trainCount].count += 1;
-        mapCopy[trainCount].updateTime = moment().format('YYYY-MM-DD HH:mm:ss');
-      } else {
-        mapCopy[trainCount] = {
+    failure(type, trainInfo) {
+      const blackList = this.getBlackList();
+      const index = blackList.findIndex((v) => v.type === type && v.trainCount === trainInfo.trainCount);
+      if (index === -1) {
+        blackList.push({
           trainCount: trainInfo.trainCount,
           station: `${trainInfo.startN}-${trainInfo.endN}`,
           date: trainInfo.date,
           time: trainInfo.time,
           count: 1,
           updateTime: moment().format('YYYY-MM-DD HH:mm:ss'),
-        };
+          type,
+        });
+      } else {
+        blackList[index].count += 1;
+        blackList[index].updateTime = moment().format('YYYY-MM-DD HH:mm:ss');
       }
-      this.blackInfoMap = mapCopy;
+      this.blackList = blackList;
     },
-    delete(trainCount) {
-      const mapCopy = this.getBlackInfoMap();
-      delete mapCopy[trainCount];
-      this.blackInfoMap = mapCopy;
+    delete(type, trainCount) {
+      const blackList = this.getBlackList();
+      const index = blackList.findIndex((v) => v.type === type && v.trainCount === trainCount);
+      blackList.splice(index, 1);
+      this.blackList = blackList;
     },
-    isInBlackList(trainCount, limitCount, limitDuration) {
+    isInBlackList(type, trainCount, limitCount, limitDuration) {
       limitCount = limitCount || 3;
       limitDuration = limitDuration || 120;
-      const blackInfo = this.blackInfoMap[trainCount];
+      const blackInfo = this.blackList.find((v) => v.type === type && v.trainCount === trainCount);
       if (blackInfo) {
         const count = blackInfo.count;
         const updateTime = blackInfo.updateTime;
         if (count >= limitCount) {
           if (moment().isAfter(moment(updateTime).add(parseInt(limitDuration), 'second'))) {
             // 触发规则但超时 - 移除此数据
-            this.delete(trainCount);
+            this.delete(type, trainCount);
             return false;
           } else {
             // 触发规则小黑屋但未超时
@@ -63,8 +65,8 @@ const vueInfo = {
         return false;
       }
     },
-    getBlackInfoMap() {
-      return JSON.parse(JSON.stringify(this.blackInfoMap));
+    getBlackList() {
+      return JSON.parse(JSON.stringify(this.blackList));
     },
   },
 

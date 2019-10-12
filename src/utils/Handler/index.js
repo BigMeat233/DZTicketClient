@@ -2,27 +2,25 @@ import Macro from '@/utils/Macro';
 
 class Handler {
   static toTicketDisplayInfo(ticketInfo) {
+    // 构造座位票数
+    const seatInfos = {};
+    const seatTypeKeys = Object.keys(Macro.seatTypeKeyMap);
+    seatTypeKeys.forEach((seatTypeKey) => seatInfos[seatTypeKey] = ticketInfo[seatTypeKey]);
     return {
       trainCount: ticketInfo.trainCount,
       date: ticketInfo.date,
       time: ticketInfo.startT + ' - ' + ticketInfo.endT + ' | ' + ticketInfo.duration,
       station: ticketInfo.startStr + ' - ' + ticketInfo.endStr,
-      superSeat: ticketInfo.superSeat,// 商务座
-      firSeat: ticketInfo.firSeat,// 一等座
-      secSeat: ticketInfo.secSeat,// 二等座
-      superBed: ticketInfo.superBed,// 动卧
-      superSoftBed: ticketInfo.superSoftBed,// 高级软卧
-      softBed: ticketInfo.softBed,// 软卧
-      softSeat: ticketInfo.softSeat,// 软座
-      hardBed: ticketInfo.hardBed,// 硬卧
-      hardSeat: ticketInfo.hardSeat,// 硬座
-      noSeat: ticketInfo.noSeat,// 无座
+      ...seatInfos,
       trainId: ticketInfo.trainId,
       location: ticketInfo.location,
       startS: ticketInfo.startS,
       endS: ticketInfo.endS,
       startN: ticketInfo.startStr,
       endN: ticketInfo.endStr,
+      startCode: ticketInfo.startCode,
+      endCode: ticketInfo.endCode,
+      seatTypeCodes: ticketInfo.seatTypeCodes,
       secStr: ticketInfo.secStr,
       trainNo: ticketInfo.trainNo,
       state: ticketInfo.state
@@ -40,16 +38,13 @@ class Handler {
     let endN = ticketDisplayInfo.endN;
     let date = ticketDisplayInfo.date.substring(0, 4) + '-' + ticketDisplayInfo.date.substring(4, 6) + '-' + ticketDisplayInfo.date.substring(6, 8);
     let time = ticketDisplayInfo.time;
-    let superSeat = ticketDisplayInfo.superSeat;// 商务座
-    let firSeat = ticketDisplayInfo.firSeat;// 一等座
-    let secSeat = ticketDisplayInfo.secSeat;// 二等座
-    let superBed = ticketDisplayInfo.superBed;// 动卧
-    let superSoftBed = ticketDisplayInfo.superSoftBed;// 高级软卧
-    let softBed = ticketDisplayInfo.softBed;// 软卧
-    let softSeat = ticketDisplayInfo.softSeat;// 软座
-    let hardBed = ticketDisplayInfo.hardBed;// 硬卧
-    let hardSeat = ticketDisplayInfo.hardSeat;// 硬座
-    let noSeat = ticketDisplayInfo.noSeat;// 无座
+    let startCode = ticketDisplayInfo.startCode;
+    let endCode = ticketDisplayInfo.endCode;
+    let seatTypeCodes = ticketDisplayInfo.seatTypeCodes;
+    // 构造座位票数
+    const seatInfos = {};
+    const seatTypeKeys = Object.keys(Macro.seatTypeKeyMap);
+    seatTypeKeys.forEach((seatTypeKey) => seatInfos[seatTypeKey] = ticketDisplayInfo[seatTypeKey]);
 
     return {
       trainId,
@@ -63,30 +58,131 @@ class Handler {
       endN,
       date,
       time,
-      superSeat,
-      firSeat,
-      secSeat,
-      superBed,
-      superSoftBed,
-      softBed,
-      softSeat,
-      hardBed,
-      hardSeat,
-      noSeat
+      ...seatInfos,
+      startCode,
+      endCode,
+      seatTypeCodes,
     };
   }
+  static getAlternates(type, trainInfos, personInfos) {
+    // type single/train/seat
+    // 按照优先级找出personInfos中座位的交集
+    const selectedPersons = personInfos;
+    const seatCodesArr = selectedPersons.map((selectedPerson) => selectedPerson.seatCodes);
+    const commonSeatCodes = seatCodesArr.reduce((result, seatCodes) => seatCodes.filter((seatCode) => result.indexOf(seatCode) !== -1));
+    let commonSeatCode = '';
+    if (commonSeatCodes.length === 0) {
+      return [];
+    } else if (commonSeatCodes.length === 1 && type === 'seat') {
+      // 只有1个共同座位时,如果选择seat模式将强制降级为train模式
+      if (type === 'seat') { type = 'train' }
+    }
+    // 设置seat模式和single模式使用的座位码
+    commonSeatCode = commonSeatCodes[0];
+
+    // 单车次座次模式(single)
+    if (type === 'single') {
+      for (let i = 0; i < trainInfos.length; i++) {
+        const trainInfo = trainInfos[i];
+        const key = Macro.seatTypeCodeMap[commonSeatCode].seatTypeKey;
+        if (trainInfo[key] === '候补') {
+          return [{
+            dateStr: trainInfo.date,
+            trainCount: trainInfo.trainCount,
+            seatTypeCode: commonSeatCode,
+            trainNo: trainInfo.trainNo,
+            secStr: trainInfo.secStr,
+            trainInfo,
+          }];
+        }
+      }
+      // 如果循环转出来了则证明没有找到
+      return [];
+    }
+    // 多车次优先模式(train)
+    else if (type === 'train') {
+      const alternates = [];
+      for (let i = 0; i < trainInfos.length; i++) {
+        const trainInfo = trainInfos[i];
+        const key = Macro.seatTypeCodeMap[commonSeatCode].seatTypeKey;
+        if (trainInfo[key] === '候补') {
+          alternates.push({
+            dateStr: trainInfo.date,
+            trainCount: trainInfo.trainCount,
+            seatTypeCode: commonSeatCode,
+            trainNo: trainInfo.trainNo,
+            secStr: trainInfo.secStr,
+            trainInfo,
+          });
+          if (alternates.length === 2) {
+            return alternates;
+          }
+        }
+      }
+      // 如果循环转出来了则直接返回alternates
+      return alternates;
+    }
+    // 多座次优先模式(seat)
+    else if (type === 'seat') {
+      let alternates = [];
+      for (let i = 0; i < trainInfos.length; i++) {
+        const trainInfo = trainInfos[i];
+        const key1 = Macro.seatTypeCodeMap[commonSeatCodes[0]].seatTypeKey;
+        const key2 = Macro.seatTypeCodeMap[commonSeatCodes[1]].seatTypeKey;
+
+        if (trainInfo[key1] === '候补' && trainInfo[key2] === '候补') {
+          alternates = [
+            {
+              dateStr: trainInfo.date,
+              trainCount: trainInfo.trainCount,
+              seatTypeCode: commonSeatCodes[0],
+              trainNo: trainInfo.trainNo,
+              secStr: trainInfo.secStr,
+              trainInfo,
+            }, {
+              dateStr: trainInfo.date,
+              trainCount: trainInfo.trainCount,
+              seatTypeCode: commonSeatCodes[1],
+              trainNo: trainInfo.trainNo,
+              secStr: trainInfo.secStr,
+              trainInfo,
+            },
+          ];
+          return alternates;
+        }
+      }
+      // 如果循环转出来了说明没有同时满足两个座位的车次
+      // 降级为train模式
+      for (let i = 0; i < trainInfos.length; i++) {
+        const trainInfo = trainInfos[i];
+        const key = Macro.seatTypeCodeMap[commonSeatCode].seatTypeKey;
+        if (trainInfo[key] === '候补') {
+          alternates.push({
+            dateStr: trainInfo.date,
+            trainCount: trainInfo.trainCount,
+            seatTypeCode: commonSeatCode,
+            trainNo: trainInfo.trainNo,
+            secStr: trainInfo.secStr,
+            trainInfo,
+          });
+          if (alternates.length === 2) {
+            return alternates;
+          }
+        }
+      }
+      return alternates;
+    }
+  }
+
   static getOrderPersonInfo(trainInfos, personInfos) {
     trainInfos = trainInfos.map((trainInfo) => {
-      trainInfo['9'] = this.getAmount(trainInfo.superSeat);
-      trainInfo['P'] = this.getAmount(trainInfo.superSeat);
-      trainInfo['M'] = this.getAmount(trainInfo.firSeat);
-      trainInfo['O'] = this.getAmount(trainInfo.secSeat);
-      trainInfo['6'] = this.getAmount(trainInfo.superSoftBed);
-      trainInfo['F'] = this.getAmount(trainInfo.superBed);
-      trainInfo['4'] = this.getAmount(trainInfo.softBed);
-      trainInfo['3'] = this.getAmount(trainInfo.hardBed);
-      trainInfo['2'] = this.getAmount(trainInfo.softSeat);
-      trainInfo['1'] = this.getAmount(trainInfo.hardSeat);
+      const seatTypeKeys = Object.keys(Macro.seatTypeKeyMap);
+      seatTypeKeys
+        .filter((seatTypeKey) => seatTypeKey !== 'noSeat' && seatTypeKey !== 'otherSeat')
+        .forEach((seatTypeKey) => {
+          const seatTypeInfo = Macro.seatTypeKeyMap[seatTypeKey];
+          trainInfo[seatTypeInfo.seatTypeCode] = this.getAmount(trainInfo[seatTypeKey]);
+        });
       return trainInfo;
     });
     let persons = [];
@@ -124,7 +220,7 @@ class Handler {
   }
 
   static getAmount(amountStr) {
-    if (amountStr === '无' || amountStr === '') {
+    if (amountStr === '无' || amountStr === '' || amountStr === '候补') {
       return 0;
     } else if (amountStr === '有') {
       return 10;
@@ -186,7 +282,7 @@ class Handler {
     // 1. 检查每个人的座位类型
     let isUniqueSeatType = true;
     for (let i = 0; i < selectedPersons.length; i++) {
-      const selectedPerson = selectedPersons[0]
+      const selectedPerson = selectedPersons[i]
       if (selectedPerson.seatCodes.length !== 1) {
         isUniqueSeatType = false;
         break;

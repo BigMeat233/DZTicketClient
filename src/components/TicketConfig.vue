@@ -22,6 +22,22 @@
         ></el-input>
         <el-switch v-model="ticketConfig.isTrainLimit" class="formItemSwitch"></el-switch>
       </el-form-item>
+      <el-form-item label="自动候补">
+        <el-select
+          v-model="ticketConfig.autoAlternateType"
+          clearable
+          class="formItemInput"
+          placeholder="请选择候补模式"
+        >
+          <el-option
+            v-for="alternateType in alternateTypes"
+            :label="alternateType.label"
+            :key="alternateType.value"
+            :value="alternateType.value"
+          />
+        </el-select>
+        <el-switch v-model="ticketConfig.isAutoAltenate" class="formItemSwitch"></el-switch>
+      </el-form-item>
       <el-form-item label="黑屋规则">
         <el-input
           v-model="ticketConfig.blackCount"
@@ -39,38 +55,42 @@
         ></el-input>
       </el-form-item>
     </el-form>
-    <div class="configTipDiv">
+    <!-- <div class="configTipDiv">
       <div class="textDiv1">静默刷票流程</div>
       <div class="textDiv2">
         <span class="dangerSpan">[登录]</span> →
         <span class="dangerSpan">填写车票站台、日期</span> →
         <span class="dangerSpan">选择乘客及座位</span> → 点击
         <span class="dangerSpan">[开始刷票]</span>
-        <br>→ 在表格中选择
+        <br />→ 在表格中选择
         <span class="dangerSpan">[期望的车次(空格隔开)]</span> → 打开
         <span class="dangerSpan">[刷票配置]</span> → 打开
         <span class="dangerSpan">[自动刷票]</span>开关
-        <br>→ 配置
+        <br />→ 配置
         <span class="dangerSpan">[刷票间隔]</span>、
         <span class="dangerSpan">[期望车次]</span>、
         <span class="dangerSpan">[黑屋规则和时间]</span> → 关闭
         <span class="dangerSpan">[刷票配置]</span> → 点击
         <span class="dangerSpan">[开始刷票]</span>
-        <br>→ 此时即开启静默刷票(非卡住),成功后有
+        <br />→ 此时即开启静默刷票(非卡住),成功后有
         <span class="dangerSpan">[弹框提示]</span>可打开
         <span class="dangerSpan">[刷票日志]</span>进行监控
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
 
 <script>
+import Macro from '@/utils/Macro';
 export default {
   name: 'TicketConfig',
   props: ['value'],
   computed: {
-    ticketConfig: {
-      get() { return this.value },
+    ticketConfig() {
+      return this.value;
+    },
+    alternateTypes() {
+      return Macro.alternateTypes;
     },
   },
   methods: {

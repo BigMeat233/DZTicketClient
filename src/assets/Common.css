@@ -26,6 +26,19 @@
   flex: 1;
 }
 
+.alternateBtn {
+  background-color: #fb5773;
+  border-color: #fb5773;
+}
+
+.alternateBtn:active,
+.alternateBtn:focus,
+.alternateBtn:hover {
+  background-color: #ff6773;
+  border-color: #ff6773;
+  background: #ff6773;
+}
+
 .el-tooltip {
   outline: none;
 }
@@ -34,6 +47,10 @@
   padding-top: 0;
   height: 400px;
   overflow: auto;
+}
+
+.el-table__empty-block {
+  width: 100% !important;
 }
 
 .el-form-item__content {

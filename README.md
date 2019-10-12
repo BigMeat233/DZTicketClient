@@ -11,7 +11,16 @@ Document: http://og.gl/doc
 
 ### Release Address
 Line1: http://vpn.og.gl/DZTicket.zip  
-Line2: http://d.og.gl/DZTicket.zip  
-Line3: http://og.gl/DZTicket.zip  
+Line2: http://og.gl/DZTicket.zip
+Line3: http://d.og.gl/DZTicket.zip
+PS: Package from line3 do not support alternatting  
+
+### How To Run
++ Download and unzip the DZTicket.zip from release address
++ Run the bat or shell file as shown in introduce video
++ Open terminal and change to DZTicketClient root dictionary
++ Run ```npm run dev``` in terminal
++ Open ```http://localhost:8080``` in browser
+
 
 ### Builder Based On Vue-Cli  

@@ -1,17 +1,55 @@
 class Macro {
   constructor() {
     this.seatTypes = [
-      { label: '商务座', value: '9' },
-      { label: '特等座', value: 'P' },
-      { label: '一等座', value: 'M' },
-      { label: '二等座', value: 'O' },
-      { label: '高级软卧', value: '6' },
-      { label: '动卧', value: 'F' },
-      { label: '高级动卧', value: 'A' },
-      { label: '软卧', value: '4' },
-      { label: '硬卧', value: '3' },
-      { label: '软座', value: '2' },
-      { label: '硬座', value: '1' }
+      { code: 'P', desc: '特等座', key: 'superSeat' },
+      { code: '9', desc: '商务座', key: 'commSeat' },
+      { code: 'M', desc: '一等座', key: 'firSeat' },
+      { code: 'O', desc: '二等座', key: 'secSeat' },
+      { code: 'A', desc: '高级动卧', key: 'superSuperBed' },
+      { code: 'F', desc: '动卧', key: 'superBed' },
+      { code: 'I', desc: '一等卧', key: 'firBed' },
+      { code: 'J', desc: '二等卧', key: 'secBed' },
+      { code: '6', desc: '高级软卧', key: 'superSoftBed' },
+      { code: '4', desc: '软卧', key: 'softBed' },
+      { code: '3', desc: '硬卧', key: 'hardBed' },
+      { code: '2', desc: '软座', key: 'softSeat' },
+      { code: '1', desc: '硬座', key: 'hardSeat' },
+      { code: 'WZ', desc: '无座', key: 'noSeat' },
+      { code: 'OT', desc: '其他', key: 'otherSeat' },
+      { code: '5', desc: '包厢硬卧', key: '' },
+      { code: '7', desc: '一等软座', key: '' },
+      { code: '8', desc: '二等软座', key: '' },
+      { code: 'B', desc: '混编硬座', key: '' },
+      { code: 'C', desc: '混编硬卧', key: '' },
+      { code: 'E', desc: '特等软座', key: '' },
+      { code: 'H', desc: '一人软包', key: '' },
+      { code: 'K', desc: '混编软座', key: '' },
+      { code: 'L', desc: '混编软卧', key: '' },
+      { code: 'Q', desc: '观光座', key: '' },
+      { code: 'S', desc: '一等包座', key: '' },
+    ];
+
+    this.seatTypeCodeMap = {};
+    this.seatTypeKeyMap = {};
+    this.seatTypes.forEach((seatType) => {
+      this.seatTypeCodeMap[seatType.code] = {
+        seatTypeCode: seatType.code,
+        seatTypeName: seatType.desc,
+        seatTypeKey: seatType.key
+      };
+
+      if (seatType.key !== '') {
+        this.seatTypeKeyMap[seatType.key] = {
+          seatTypeCode: seatType.code,
+          seatTypeName: seatType.desc,
+          seatTypeKey: seatType.key
+        };
+      }
+    });
+    this.alternateTypes = [
+      { label: '单车次座次模式(成功率:高,候补类型:至多1个车次,1个位次)', value: 'single' },
+      { label: '多车次优先模式(成功率:中,候补类型:至多2个车次,1个位次)', value: 'train' },
+      { label: '多座次优先模式(成功率:低,候补类型:至多1个车次,2个位次)', value: 'seat' },
     ];
     this.certTypes = [
       { label: '中国居民身份证', value: '1' },

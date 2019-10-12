@@ -5,9 +5,10 @@ class AsyncFuncs {
     return new Promise(async (resolve) => {
       const result = await Network.initPage();
       if (result.result) {
-        const otnId = result.data.otnId;
+        const otnId = result.data.initInfo.otnId;
+        const confInfo = result.data.initInfo.confInfo;
         Core.local.setItem('otnId', otnId);
-        resolve(otnId);
+        resolve({ otnId, confInfo });
       } else if (result.err.code === '1') {
         Core.ui.message.warn(result.err.msg);
       } else {
@@ -132,8 +133,6 @@ class AsyncFuncs {
       const result = await Network.orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, seatLocations, false);
       if (result.result) {
         resolve({ result: true, queueInfo: result.data.queueInfo });
-      } else if (result.err.code === '1') {
-        resolve({ result: false, err: result.err.msg });
       } else {
         resolve({ result: false, err: result.err.msg });
       }
@@ -146,8 +145,6 @@ class AsyncFuncs {
       const result = await Network.orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, seatLocations);
       if (result.result) {
         resolve({ result: true, queueInfo: result.data.queueInfo });
-      } else if (result.err.code === '1') {
-        resolve({ result: false, err: result.err.msg });
       } else {
         resolve({ result: false, err: result.err.msg });
       }
@@ -260,6 +257,149 @@ class AsyncFuncs {
         Core.ui.message.warn(result.err.msg);
       } else {
         Core.ui.message.error(result.err.msg);
+      }
+    });
+  }
+
+  static queryPrice(trainNo, date, startCode, endCode, seatTypeCodes) {
+    return new Promise(async (resolve) => {
+      const result = await Network.queryPrice(trainNo, date, startCode, endCode, seatTypeCodes);
+      if (result.result) {
+        resolve(result.data.priceInfo);
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+      } else {
+        Core.ui.message.error(result.err.msg);
+      }
+    });
+  }
+
+  static queryAlternateRate(secStr, seatTypeCode) {
+    return new Promise(async (resolve) => {
+      const result = await Network.queryAlternateRate(secStr, seatTypeCode);
+      if (result.result) {
+        resolve(result.data.rateInfo);
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+      } else {
+        Core.ui.message.error(result.err.msg);
+      }
+    });
+  }
+
+  // 下候补单(带菊花)
+  static orderAlternates(dateTime, alternates, persons) {
+    return new Promise(async (resolve) => {
+      const result = await Network.orderAlternates(dateTime, alternates, persons);
+      if (result.result) {
+        resolve({ result: true });
+      } else {
+        resolve({ result: false, err: result.err.msg });
+      }
+    });
+  }
+
+  // 下候补单(无菊花和提示)
+  static orderAlternatesWithoutLoadingAndTips(dateTime, alternates, persons) {
+    return new Promise(async (resolve) => {
+      const result = await Network.orderAlternates(dateTime, alternates, persons, false);
+      if (result.result) {
+        resolve({ result: true });
+      } else {
+        resolve({ result: false, err: result.err.msg });
+      }
+    });
+  }
+
+  static queryAlternateQueue() {
+    return new Promise(async (resolve) => {
+      const result = await Network.queryAlternateQueue();
+      if (result.result) {
+        resolve({ result: true, queueInfo: result.data.queueInfo });
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+        resolve({ result: false, errCode: result.err.code, err: result.err.msg });
+      } else {
+        Core.ui.message.error(result.err.msg);
+        resolve({ result: false, errCode: result.err.code, err: result.err.msg });
+      }
+    });
+  }
+
+  static queryAlternateQueueWithoutLoadingAndTips() {
+    return new Promise(async (resolve) => {
+      const result = await Network.queryAlternateQueue(false);
+      if (result.result) {
+        resolve({ result: true, queueInfo: result.data.queueInfo });
+      } else {
+        resolve({ result: false, errCode: result.err.code, err: result.err.msg });
+      }
+    });
+  }
+
+  static cancelAlternateQueue() {
+    return new Promise(async (resolve) => {
+      const result = await Network.cancelAlternateQueue();
+      if (result.result) {
+        Core.ui.message.success('取消候补排队成功');
+        resolve(true);
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+        resolve(false);
+      } else {
+        Core.ui.message.error(result.err.msg);
+        resolve(false);
+      }
+    });
+  }
+
+  static cancelAlternateQueueWithoutTip() {
+    return new Promise(async (resolve) => {
+      const result = await Network.cancelAlternateQueue();
+      if (result.result) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  }
+
+  static queryAlternateOrder() {
+    return new Promise(async (resolve) => {
+      const result = await Network.queryAlternateOrder();
+      if (result.result) {
+        const orderInfo = result.data.orderInfo;
+        resolve(orderInfo);
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+      } else {
+        Core.ui.message.error(result.err.msg);
+      }
+    });
+  }
+
+  static queryAlternateOrderWithoutTip() {
+    return new Promise(async (resolve) => {
+      const result = await Network.queryAlternateOrder();
+      if (result.result) {
+        const orderInfo = result.data.orderInfo;
+        resolve(orderInfo);
+      }
+    });
+  }
+
+  static cancelAlternateOrder(orderId) {
+    return new Promise(async (resolve) => {
+      const result = await Network.cancelAlternateOrder(orderId);
+      if (result.result) {
+        Core.ui.message.success('取消候补订单成功');
+        resolve(true);
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+        resolve(false);
+      } else {
+        Core.ui.message.error(result.err.msg);
+        resolve(false);
       }
     });
   }
