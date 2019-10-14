@@ -1,6 +1,6 @@
 <template>
   <div class="alternateDiv">
-    <el-table :data="alternatesTemp" :border="true" :stripe="true" style="height: 333px" height="0">
+    <el-table :data="alternatesTemp" :border="true" :stripe="true" height="333px">
       <el-table-column label="车次" prop="trainCount" header-align="center" align="center" />
       <el-table-column label="站台" prop="station" header-align="center" align="center" />
       <el-table-column label="日期" prop="date" header-align="center" align="center" />

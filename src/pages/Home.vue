@@ -18,13 +18,16 @@
       @onBlackListBtnClick="onBlackListBtnClick"
       @onRecordBtnClick="onRecordBtnClick"
       @onAlternateBtnClick="onAlternateBtnClick"
+      @onHelpBtnClick="onHelpBtnClick"
     />
     <!-- 车票区域 -->
     <tickets
       :ticketInfos="ticketInfos"
+      :trainLimit="ticketConfig.trainLimit"
       @onOrder="onOrderTicket"
       @onQueryPrice="onQueryPrice"
       @onStationClick="onStationClick"
+      @onTrainCountClick="onTrainCountClick"
       @onAlternate="onAlternate"
     />
     <!-- 选择乘客弹框 -->
@@ -151,6 +154,15 @@
     >
       <type-selector :category="category" @onHandler="onHandler" />
     </el-dialog>
+    <!-- 使用说明 -->
+    <el-dialog
+      title="使用说明"
+      width="80%"
+      custom-class="introduceDialog"
+      :visible.sync="introduceDialogVisible"
+    >
+      <introduce />
+    </el-dialog>
   </div>
 </template>
 
@@ -169,7 +181,8 @@ import PriceInfo from '@/components/PriceInfo';
 import BlackList from '@/components/BlackList';
 import Alternate from '@/components/Alternate';
 import AlternateTip from '@/components/AlternateTip';
-import TypeSelector from '@/components/TypeSelector.vue';
+import TypeSelector from '@/components/TypeSelector';
+import Introduce from '@/components/Introduce';
 import BlackListCore from '@/utils/BlackList';
 import Macro from '@/utils/Macro';
 import moment from 'moment';
@@ -189,6 +202,7 @@ export default {
     'price-info': PriceInfo,
     'alternate': Alternate,
     'type-selector': TypeSelector,
+    'introduce': Introduce,
   },
   data() {
     return {
@@ -202,6 +216,7 @@ export default {
       priceDialogVisible: false,
       alternateDialogVisible: false,
       typeSelectorDialogVisible: false,
+      introduceDialogVisible: false,
       // 其他显隐性
       isAutoQuering: false,
       // 搜索选项
@@ -340,6 +355,12 @@ export default {
      */
     onAlternateBtnClick() {
       this.alternateDialogVisible = true;
+    },
+    /**
+     * 帮助按钮点击
+     */
+    onHelpBtnClick() {
+      this.introduceDialogVisible = true;
     },
     /**
      * 查询队列按钮点击
@@ -503,7 +524,7 @@ export default {
       const alternateResult = await this.orderAlternatesAndLoopQueueState(true, dateTime, this.alternates, personInfos);
       if (alternateResult.result) {
         this.stopAutoQueryAndCancelQueue();
-        Core.ui.box.alert('候补成功', `候补成功,请于30分钟内前往12306进行支付！！！(候补成功时间:${Core.common.time.format(new Date(), 'yyyy-MM-dd HH:mm:ss')})`, () => {
+        Core.ui.box.alert('候补成功', `🎆🎆🎆候补成功,请于30分钟内前往12306进行支付！！！(候补成功时间:${Core.common.time.format(new Date(), 'yyyy-MM-dd HH:mm:ss')})`, () => {
           window.open('https://www.12306.cn');
         });
       } else {
@@ -524,7 +545,7 @@ export default {
       const ticketResult = await this.orderTicketAndLoopQueueState(true, [trainInfo], personInfos);
       if (ticketResult.result) {
         this.stopAutoQueryAndCancelQueue();
-        Core.ui.box.alert('抢票成功', `抢票成功,请于30分钟内前往12306进行支付！！！(出票时间:${Core.common.time.format(new Date(), 'yyyy-MM-dd HH:mm:ss')})`, () => {
+        Core.ui.box.alert('抢票成功', `🎆🎆🎆抢票成功,请于30分钟内前往12306进行支付！！！(出票时间:${Core.common.time.format(new Date(), 'yyyy-MM-dd HH:mm:ss')})`, () => {
           window.open('https://www.12306.cn');
         });
       } else {
@@ -543,6 +564,22 @@ export default {
       const stationStops = await AsyncFuncs.queryStationStops(trainNo, startStation, endStation, date);
       this.stopDialogVisible = true;
       this.stationStops = stationStops;
+    },
+    /**
+     * 车票信息中的车次被点击
+     */
+    onTrainCountClick(trainInfo) {
+      const trainLimit = this.ticketConfig.trainLimit;
+      const trainLimitList = trainLimit.split(' ');
+      const trainCount = trainInfo.trainCount;
+      const index = trainLimitList.findIndex((v) => v === trainCount);
+      if (index !== -1) {
+        trainLimitList.splice(index, 1);
+      } else {
+        trainLimitList.push(trainCount);
+      }
+      this.ticketConfig.trainLimit = trainLimitList.join(' ').replace(/^ +/, '');
+      Core.ui.message.success('设置期望车次成功!');
     },
     /**
      * 刷票按钮被点击

@@ -4,8 +4,7 @@
       :data="stationStops"
       :border="true"
       :cell-style="cellStyleCallBack"
-      style="height: 100%"
-      height="0"
+      height="100%"
     >
       <el-table-column label="站序" prop="stationNo" header-align="center" align="center"/>
       <el-table-column label="站名" prop="stationName" header-align="center" align="center"/>
