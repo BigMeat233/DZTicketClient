@@ -1,11 +1,7 @@
 <template>
   <div class="personDiv" :class="{isSelected:person.isSelected}" @click="onPersonClick($event)">
-    <el-checkbox
-      v-model="person.isSelected"
-      border
-      :style="{border:'0'}"
-      @change="onCheckBoxChange(value)"
-    ></el-checkbox>
+    <i class="el-icon-minus" v-if="person.isSelected" />
+    <i class="el-icon-plus" v-else />
     <label class="personInfoText">{{person.name}}</label>
     <label class="personInfoText">{{person.typeName}}</label>
     <label class="personInfoText">{{person.certType}}</label>
@@ -68,17 +64,6 @@ export default {
         return;
       }
       this.person.isSelected = !this.person.isSelected;
-    },
-    onCheckBoxChange(value) {
-      if (this.person.seatCodes.length === 0) {
-        this.person.isSelected = false;
-        Core.ui.message.warn('请先选择座位类型');
-      }
-      if (this.person.typeCode !== '1') {
-        this.person.isSelected = false;
-        Core.ui.message.warn('无法为非成人乘客购票');
-        return;
-      }
     },
     onDeleteBtnClick(event) {
       event.stopPropagation();

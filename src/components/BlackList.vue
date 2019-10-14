@@ -1,6 +1,6 @@
 <template>
   <div class="blackListDiv">
-    <el-table :data="blackList" :border="true" :stripe="true" style="height: 100%" height="0">
+    <el-table :data="blackList" :border="true" :stripe="true" height="100%">
       <el-table-column label="类型" prop="type" header-align="center" align="center" />
       <el-table-column label="车次" prop="trainCount" header-align="center" align="center" />
       <el-table-column label="站台" prop="station" header-align="center" align="center" />

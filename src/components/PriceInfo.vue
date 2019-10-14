@@ -1,6 +1,6 @@
 <template>
   <div class="priceInfoDiv">
-    <el-table :data="tableInfo" :border="true" style="height: 100%" height="0">
+    <el-table :data="tableInfo" :border="true" height="100%">
       <el-table-column
         v-for="(columnKey,index) in columnKeys"
         :key="index"

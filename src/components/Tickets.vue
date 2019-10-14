@@ -6,10 +6,19 @@
       :stripe="true"
       :cell-style="cellStyleCallBack"
       @cell-click="onCellClick"
-      style="height: 100%"
-      height="0"
+      height="100%"
     >
-      <el-table-column label="车次" prop="trainCount" header-align="center" align="center" fixed />
+      <el-table-column label="车次" prop="trainCount" header-align="center" align="center" fixed>
+        <template slot-scope="scope">
+          <i
+            class="el-icon-check selectedIcon"
+            v-if="trainLimitList.indexOf(scope.row.trainCount) !== -1"
+            @click="onTrainCountClick(scope.row)"
+          />
+          <i class="el-icon-close unselectedIcon" @click="onTrainCountClick(scope.row)" v-else />
+          <div @click="onTrainCountClick(scope.row)">{{scope.row.trainCount}}</div>
+        </template>
+      </el-table-column>
       <el-table-column label="站台" prop="station" header-align="center" align="center" fixed>
         <template slot-scope="scope">
           <div @click="onStationClick(scope.row)">{{scope.row.station}}</div>
@@ -41,12 +50,15 @@ import Handler from '@/utils/Handler';
 import Macro from '@/utils/Macro';
 export default {
   name: 'Tickets',
-  props: ['ticketInfos'],
+  props: ['ticketInfos', 'trainLimit'],
   computed: {
     ticketInfosTemp() {
       return this.ticketInfos.map((ticketInfo) => {
         return Handler.toTicketDisplayInfo(ticketInfo);
       });
+    },
+    trainLimitList() {
+      return this.trainLimit.split(' ');
     },
     seatTypeKeyMap() {
       return Macro.seatTypeKeyMap;
@@ -64,6 +76,10 @@ export default {
     onStationClick(ticketDisplayInfo) {
       let trainInfo = Handler.toTrainInfo(ticketDisplayInfo);
       this.$emit('onStationClick', trainInfo);
+    },
+    onTrainCountClick(ticketDisplayInfo) {
+      let trainInfo = Handler.toTrainInfo(ticketDisplayInfo);
+      this.$emit('onTrainCountClick', trainInfo);
     },
     cellStyleCallBack(loc) {
       let key = loc.column.property;
@@ -119,5 +135,13 @@ export default {
   flex: 1;
   justify-content: center;
   align-items: center;
+}
+
+.unselectedIcon {
+  color: #f56c6c;
+}
+
+.selectedIcon {
+  color: #67c23a;
 }
 </style>

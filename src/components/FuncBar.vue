@@ -31,9 +31,15 @@
       type="success"
       icon="el-icon-video-camera-solid"
       circle
-      v-if="true"
       @click.native="btnClick(9)"
       title="刷票日志"
+    />
+    <el-button
+      type="primary"
+      icon="el-icon-question"
+      circle
+      @click.native="btnClick(11)"
+      title="使用说明"
     />
   </div>
 </template>
@@ -66,6 +72,8 @@ export default {
         this.$emit('onRecordBtnClick');
       } else if (index === 10) {
         this.$emit('onAlternateBtnClick');
+      } else if (index === 11) {
+        this.$emit('onHelpBtnClick');
       }
     }
   },
