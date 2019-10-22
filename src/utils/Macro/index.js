@@ -112,6 +112,10 @@ class Macro {
         ]
       }
     ];
+    this.limitStrings = {
+      isAlternated: '目前您已有待兑现的候补订单，无法再次下单。',
+      isOffline: '请重试，若多次重试无效则需要重新登录',
+    };
   }
 }
 

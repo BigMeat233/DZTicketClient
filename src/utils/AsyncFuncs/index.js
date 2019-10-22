@@ -1,5 +1,7 @@
-import Network from '@/utils/Network';
 import Core from '@/utils/Core';
+import Macro from '@/utils/Macro';
+import Network from '@/utils/Network';
+
 class AsyncFuncs {
   static initPage() {
     return new Promise(async (resolve) => {
@@ -281,6 +283,11 @@ class AsyncFuncs {
         resolve(result.data.rateInfo);
       } else if (result.err.code === '1') {
         Core.ui.message.warn(result.err.msg);
+        if (result.err.msg === Macro.limitStrings.isAlternated) {
+          resolve({ isAlternated: true });
+        } else if (result.err.msg === Macro.limitStrings.isOffline) {
+          resolve({ isOffline: true });
+        }
       } else {
         Core.ui.message.error(result.err.msg);
       }

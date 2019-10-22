@@ -429,6 +429,17 @@ export default {
      */
     async onAlternate({ secStr, seatTypeCode, startN, endN, trainCount, time }) {
       const rateInfo = await AsyncFuncs.queryAlternateRate(secStr, seatTypeCode);
+      // 如果当前账号中有未兑现的候补单 - 更新账号候补状态
+      if (rateInfo.isAlternated) {
+        this.isAlternated = true;
+        return;
+      } 
+      // 如果查询成功率接口报离线 - 刷新一次乘客列表
+      else if (rateInfo.isOffline) {
+        AsyncFuncs.queryPersons();
+        return;
+      }
+
       const addToAlternates = () => {
         // 判断是否符合添加条件
         const newAlternateInfo = {
@@ -809,6 +820,10 @@ export default {
           });
         } else {
           isLoading ? Core.ui.message.warn(result.err) : this.createLogContent(`提交候补单失败,原因:[${result.err}]`);
+          // 如果账号中已有未兑现的候补订单 - 更新账号候补状态
+          if (result.err === Macro.limitStrings.isAlternated) {
+            this.isAlternated = true;
+          }
           resolve({ result: false });
         }
       });
@@ -1005,7 +1020,8 @@ export default {
                   });
                 } else {
                   const needLockTrainInfos = alternates.map((alternate) => alternate.trainInfo);
-                  needLockTrainInfos.forEach((trainInfo) => BlackListCore.failure('alternate', trainInfo));
+                  // 为了兼容多座次模式的自动候补,加入小黑屋时需要对车次去重
+                  [...new Set(needLockTrainInfos)].forEach((trainInfo) => BlackListCore.failure('alternate', trainInfo));
                 }
               }
             }
