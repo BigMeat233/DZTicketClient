@@ -53,14 +53,6 @@ export default {
   name: 'Alternate',
   props: ['alternates'],
   data() {
-    const hourPickerOptions = [];
-    for (let i = 6; i < 20; i++) {
-      hourPickerOptions.push({
-        value: i < 10 ? `0${i}` : i.toString(),
-        label: i < 10 ? `0${i} 时` : `${i} 时`,
-      });
-    }
-
     const self = this;
     const datePickerOptions = {
       disabledDate(date) {
@@ -80,7 +72,6 @@ export default {
     };
 
     return {
-      hourPickerOptions,
       datePickerOptions,
       ddlDate: null,
       ddlHour: null,
@@ -88,12 +79,52 @@ export default {
     };
   },
   computed: {
+    hourPickerOptions() {
+      // 未选择截止日期
+      if (!this.ddlDate) {
+        return [];
+      }
+      // 选择的截止日期为今天 - 当前小时数至22点
+      else if (moment().format("YYYY-MM-DD") === this.ddlDate) {
+        const result = [];
+        for (let i = moment().hour(); i < 23; i++) {
+          result.push({
+            value: i < 10 ? `0${i}` : i.toString(),
+            label: i < 10 ? `0${i} 时` : `${i} 时`
+          });
+        }
+        return result;
+      }
+      // 选择的截止日期不为今天 - 6-22点
+      else {
+        const result = [];
+        for (let i = 6; i < 23; i++) {
+          result.push({
+            value: i < 10 ? `0${i}` : i.toString(),
+            label: i < 10 ? `0${i} 时` : `${i} 时`
+          });
+        }
+        return result;
+      }
+    },
     minutePickerOptions() {
+      // 未选择小时
       if (!this.ddlHour) {
         return [];
-      } else if (this.ddlHour === '19') {
-        return [{ label: '00 分', value: '00' }];
-      } else {
+      }
+      // 选择的时间为今天的这个小时 - 当前的分钟-60
+      else if (moment().format('YYYY-MM-DD') === this.ddlDate && moment().format('HH') === this.ddlHour) {
+        const result = [];
+        for (let i = moment().minute(); i < 60; i++) {
+          result.push({
+            value: i < 10 ? `0${i}` : i.toString(),
+            label: i < 10 ? `0${i} 分` : `${i} 分`,
+          });
+        }
+        return result;
+      }
+      // 选择的时间不是今天的这个小时 - 00-60
+      else {
         const result = [];
         for (let i = 0; i < 60; i++) {
           result.push({

@@ -889,8 +889,8 @@ export default {
         this.isAutoQuering = true;
         // 如果当前时间不在6:00 - 23:00之间则直接退出
         const currentHour = moment().hour();
-        if (currentHour < 6 || currentHour > 23) {
-          this.createLogContent(`当前时间不可刷票,将于06:00-24:00恢复`);
+        if (currentHour < 6 || currentHour > 22) {
+          this.createLogContent(`当前时间不可刷票,将于06:00-23:00恢复`);
           return;
         }
         this.createLogContent(`请求日期:[${date}],起点:[${startStation}],终点:[${endStation}]的车票...`);
