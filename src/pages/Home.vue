@@ -433,7 +433,7 @@ export default {
       if (rateInfo.isAlternated) {
         this.isAlternated = true;
         return;
-      } 
+      }
       // 如果查询成功率接口报离线 - 刷新一次乘客列表
       else if (rateInfo.isOffline) {
         AsyncFuncs.queryPersons();
@@ -887,10 +887,13 @@ export default {
       // 如果打开了自动刷票 - 显示停止刷票按钮
       if (isAutoQuery) {
         this.isAutoQuering = true;
-        // 如果当前时间不在6:00 - 23:00之间则直接退出
-        const currentHour = moment().hour();
-        if (currentHour < 6 || currentHour > 22) {
-          this.createLogContent(`当前时间不可刷票,将于06:00-23:00恢复`);
+        // 如果当前时间不在6:00 - 23:30之间则直接退出
+        const baseMoment = moment();
+        const currentTimestamp = moment(baseMoment).valueOf();
+        const startTimestamp = moment(baseMoment).hour(6).minute(0).second(0).valueOf();
+        const endTimestamp = moment(baseMoment).hour(23).minute(30).second(0).valueOf();
+        if (currentTimestamp < startTimestamp || currentTimestamp > endTimestamp) {
+          this.createLogContent(`当前时间不可刷票,将于06:00-23:30恢复`);
           return;
         }
         this.createLogContent(`请求日期:[${date}],起点:[${startStation}],终点:[${endStation}]的车票...`);

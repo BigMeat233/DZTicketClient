@@ -61,6 +61,7 @@
           <el-date-picker
             v-model="ticketLimit.date"
             :editable="false"
+            :picker-options="datePickerOptions"
             align="center"
             value-format="yyyy-MM-dd"
             class="formInput"
@@ -89,6 +90,7 @@
 </template>
 <script>
 import AsyncFuncs from '@/utils/AsyncFuncs';
+import moment from 'moment';
 import _ from 'lodash';
 export default {
   name: 'SearchBar',
@@ -98,7 +100,19 @@ export default {
     this.endStation.onInputChange = this.createDebounceFunction(this.refreshEndStationNames);
   },
   data() {
+    const datePickerOptions = {
+      disabledDate(date) {
+        const startDate = moment().startOf('day').valueOf();
+        const endDate = moment().add(30 - 1, 'day').valueOf();
+        if (date >= startDate && date <= endDate) {
+          return false;
+        } else {
+          return true;
+        }
+      },
+    };
     return {
+      datePickerOptions,
       ticketTypes: [
         { label: '成人', value: 'adult' },
         // { label: '学生', value: 'student' }
