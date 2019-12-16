@@ -224,6 +224,7 @@ class Network {
     return new Promise(async (resolve) => {
       const funcName = '/QueryStationStops.do';
       const params = {
+        otnId: Core.local.getItem('otnId'),
         trainNo,
         startStation,
         endStation,
