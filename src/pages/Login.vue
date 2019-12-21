@@ -34,7 +34,7 @@
       </div>
     </div>
     <div class="versionDiv">
-      <label>DZTicket V1.2.6.0</label>
+      <label>DZTicket V1.2.7.0</label>
       <label>QQ:303569528</label>
       <label>Wechat:Dashuaige_Douzi</label>
       <label>请大家谨慎使用 遵纪守法</label>
@@ -81,6 +81,7 @@ export default {
       checkCodeImg: defaultImg,
       faqDialogVisble: false,
       isNeedImgCode: false,
+      isNeedLocalLogin: false,
     };
   },
   methods: {
@@ -105,7 +106,10 @@ export default {
         return;
       }
       let answer = this.getAnswer();
-      let result = await AsyncFuncs.login(this.userId, this.userPwd, answer);
+      let result = this.isNeedLocalLogin ?
+        await AsyncFuncs.localLogin(this.userId, this.userPwd, answer)
+        :
+        await AsyncFuncs.login(this.userId, this.userPwd, answer);
       if (result) {
         this.userId = '';
         this.userPwd = '';
@@ -136,13 +140,17 @@ export default {
     },
     async getCheckCode() {
       this.points = [];
-      this.checkCodeImg = await AsyncFuncs.getCheckCode();
+      this.checkCodeImg = this.isNeedLocalLogin ?
+        await AsyncFuncs.getLocalCheckCode()
+        :
+        await AsyncFuncs.getCheckCode();
     },
   },
   async mounted() {
     const { confInfo } = await AsyncFuncs.initPage();
-    const { isNeedImgCode } = confInfo;
+    const { isNeedImgCode, isNeedLocalLogin } = confInfo;
     this.isNeedImgCode = isNeedImgCode;
+    this.isNeedLocalLogin = isNeedLocalLogin;
     await AsyncFuncs.registerDevice();
     isNeedImgCode && this.getCheckCode();
   }

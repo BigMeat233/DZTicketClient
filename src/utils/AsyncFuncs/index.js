@@ -45,9 +45,37 @@ class AsyncFuncs {
     });
   }
 
+  static getLocalCheckCode() {
+    return new Promise(async (resolve) => {
+      const result = await Network.getLocalCheckCode();
+      if (result.result) {
+        resolve(result.data.imgBase64);
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+      } else {
+        Core.ui.message.error(result.err.msg);
+      }
+    });
+  }
+
   static login(userId, userPwd, answer) {
     return new Promise(async (resolve) => {
       const result = await Network.login(userId, userPwd, answer);
+      if (result.result) {
+        resolve(true);
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+        resolve(false);
+      } else {
+        Core.ui.message.error(result.err.msg);
+        resolve(false);
+      }
+    });
+  }
+
+  static localLogin(userId, userPwd, answer) {
+    return new Promise(async (resolve) => {
+      const result = await Network.localLogin(userId, userPwd, answer);
       if (result.result) {
         resolve(true);
       } else if (result.err.code === '1') {

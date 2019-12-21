@@ -48,6 +48,31 @@ class Network {
     });
   }
 
+  static getLocalCheckCode(isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/GetLocalCheckCode.do';
+      const params = {
+        otnId: Core.local.getItem('otnId')
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static localLogin(userId, userPwd, answer, isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/LocalLogin.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+        userId,
+        userPwd,
+        answer: answer === '' ? undefined : answer
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
   static login(userId, userPwd, answer, isLoading = true) {
     return new Promise(async (resolve) => {
       const funcName = '/Login.do';
