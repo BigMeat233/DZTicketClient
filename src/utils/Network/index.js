@@ -156,7 +156,23 @@ class Network {
     });
   }
 
-  static orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, seatLocations, isLoading = true) {
+  static preOrderTicket(secStr, startStation, endStation, date, ticketType, isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/PreOrderTicket.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+        secStr,
+        ticketType,
+        startStation,
+        endStation,
+        date,
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static orderTicket(trainNo, trainId, trainCount, startStation, endStation, date, location, personInfos, seatLocations, keyInfo, aiCheck, isLoading = true) {
     return new Promise(async (resolve) => {
       const funcName = '/OrderTicket.do';
       const params = {
@@ -164,14 +180,14 @@ class Network {
         trainNo,
         trainId,
         trainCount,
-        secStr,
         startStation,
         endStation,
         date,
         location,
-        ticketType,
         personInfos,
         seatLocations,
+        keyInfo,
+        aiCheck,
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
@@ -289,7 +305,19 @@ class Network {
     });
   }
 
-  static orderAlternates(dateTime, alternates, persons, isLoading = true) {
+  static preOrderAlternates(alternates, isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/PreOrderAlternates.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+        alternates,
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static orderAlternates(dateTime, alternates, persons, aiCheck, isLoading = true) {
     return new Promise(async (resolve) => {
       const funcName = '/OrderAlternates.do';
       const params = {
@@ -297,6 +325,7 @@ class Network {
         dateTime,
         alternates,
         persons,
+        aiCheck,
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);

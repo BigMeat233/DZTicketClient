@@ -163,6 +163,18 @@
     >
       <introduce />
     </el-dialog>
+    <!-- 人机识别 -->
+    <el-dialog
+      title="人机识别"
+      width="350px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      custom-class="aiCheckDialog"
+      :before-close="aiCheckDialogClose"
+      :visible.sync="aiCheckDialogVisible"
+    >
+      <div id="aliDiv"></div>
+    </el-dialog>
   </div>
 </template>
 
@@ -217,6 +229,7 @@ export default {
       alternateDialogVisible: false,
       typeSelectorDialogVisible: false,
       introduceDialogVisible: false,
+      aiCheckDialogVisible: false,
       // 其他显隐性
       isAutoQuering: false,
       // 搜索选项
@@ -263,6 +276,8 @@ export default {
       isAlternated: false,
       // 防掉线timer
       autoQueryQueueInterval: null,
+      // 人机认证的callBack
+      aiCheckCallBackFunc: null,
     };
   },
   computed: {
@@ -797,34 +812,119 @@ export default {
     async orderAlternatesAndLoopQueueState(isLoading, dateTime, alternates, personInfos) {
       return new Promise(async (resolve) => {
         const isNeedLogger = !isLoading;
-        const result = isLoading ?
-          await AsyncFuncs.orderAlternates(dateTime, alternates, personInfos)
+        // 1. 发起预候补
+        const preOrderResult = isLoading ?
+          await AsyncFuncs.preOrderAlternates(alternates)
           :
-          await AsyncFuncs.orderAlternatesWithoutLoadingAndTips(dateTime, alternates, personInfos);
-        if (result.result) {
-          isNeedLogger && this.createLogContent('创建候补订单成功,开始轮询候补订单状态...');
-          // 显示停止按钮用于终止轮询候补
-          this.isAutoQuering = true;
-          // 开启候补队列轮询
-          this.loopAlternateQueueState(isLoading, () => {
-            // 候补成功
-            this.alternates = [];
-            this.alternateDialogVisible = false;
-            this.isAlternated = true;
-            isLoading && Core.ui.message.success('候补成功,请及时前往12306付款');
-            resolve({ result: true });
-          }, (err) => {
-            // 候补失败
-            isLoading && Core.ui.message.warn(err);
-            resolve({ result: false });
-          });
-        } else {
-          isLoading ? Core.ui.message.warn(result.err) : this.createLogContent(`提交候补单失败,原因:[${result.err}]`);
-          // 如果账号中已有未兑现的候补订单 - 更新账号候补状态
-          if (result.err === Macro.limitStrings.isAlternated) {
-            this.isAlternated = true;
+          await AsyncFuncs.preOrderAlternatesWithoutLoadingAndTips(alternates);
+        // 1.1 预候补成功 - 需要拉起AI校验(dispatchAiCheck会自动根据传入的值走流程,只需要关注await的返回值)
+        if (preOrderResult.result) {
+          // keyInfo中含有AI认证的token,dispatchAiCheck()需要这两个数据才能调起
+          const { isNeedAiCheck, keyInfo } = preOrderResult.preOrderInfo; 
+          // 处理日志
+          if (isNeedLogger) {
+            isNeedAiCheck ?
+              this.createLogContent(`预候补成功,需要完成人机识别...`)
+              :
+              this.createLogContent(`预候补成功,不需要完成人机识别,直接候补...`);
           }
+          // 2. 获取AI校验的结果
+          const aiCheckResult = await this.dispatchAiCheck(isNeedAiCheck, keyInfo);
+          // 2.1 AI校验成功 - 发起候补
+          if (aiCheckResult.result) {
+            isNeedLogger && this.createLogContent(`人机识别成功,开始候补...`);
+            const { aiCheck } = aiCheckResult;
+            // 3. 发起候补请求
+            const orderResult = isLoading ?
+              await AsyncFuncs.orderAlternates(dateTime, alternates, personInfos, aiCheck)
+              :
+              await AsyncFuncs.orderAlternatesWithoutLoadingAndTips(dateTime, alternates, personInfos, aiCheck);
+            // 3.1 候补请求成功 - 发起队列状态轮询
+            if (orderResult.result) {
+              isNeedLogger && this.createLogContent('创建候补订单成功,开始轮询候补订单状态...');
+              // 显示停止按钮用于终止轮询候补
+              this.isAutoQuering = true;
+              // 开启候补队列轮询
+              this.loopAlternateQueueState(isLoading, () => {
+                // 候补成功
+                this.alternates = [];
+                this.alternateDialogVisible = false;
+                this.isAlternated = true;
+                isLoading && Core.ui.message.success('候补成功,请及时前往12306付款');
+                resolve({ result: true });
+              }, (err) => {
+                // 候补失败
+                isLoading && Core.ui.message.warn(err);
+                resolve({ result: false });
+              });
+            } 
+            // 3.2 候补请求失败 - 日志处理并resolve
+            else {
+              isLoading ? Core.ui.message.warn(orderResult.err) : this.createLogContent(`提交候补单失败,原因:[${orderResult.err}]`);
+              // 如果账号中已有未兑现的候补订单 - 更新账号候补状态
+              if (orderResult.err === Macro.limitStrings.isAlternated) {
+                this.isAlternated = true;
+              }
+              resolve({ result: false });
+            }
+          } 
+          // 2.2 AI校验失败 - 打印日志并resolve
+          else {
+            isLoading ? Core.ui.message.error('人机识别失败') : this.createLogContent(`人机识别失败,候补失败`);
+            resolve({ result: false });
+          }
+        } 
+        // 1.2 预候补失败 - 打印日志并resolve
+        else {
+          isLoading ? Core.ui.message.warn(preOrderResult.err) : this.createLogContent(`预候补失败,原因:[${preOrderResult.err}]`);
           resolve({ result: false });
+        }
+      });
+    },
+    aiCheckDialogClose(done) {
+      this.aiCheckCallBackFunc && this.aiCheckCallBackFunc({ result: false, aiCheck: {}, keyInfo: {} });
+      done();
+    },
+    async dispatchAiCheck(isNeedAiCheck, keyInfo) {
+      return new Promise((resolve) => {
+        this.aiCheckCallBackFunc = resolve;
+        if (!isNeedAiCheck) {
+          resolve({ result: true, aiCheck: {}, keyInfo });
+        } else {
+          // 展示人机识别的弹框
+          this.aiCheckDialogVisible = true;
+          const { aiCheckToken } = keyInfo;
+          const appkey = aiCheckToken.split(':').shift();
+          const self = this;
+          const config = {
+            renderTo: '#aliDiv',
+            appkey,
+            scene: "nc_login",
+            token: aiCheckToken,
+            customWidth: 300,
+            trans: { key1: 'code0' },
+            elementID: ['usernameID'],
+            is_Opt: 0,
+            language: 'cn',
+            isEnabled: true,
+            timeout: 3000,
+            times: 5,
+            apimap: {},
+            callback(result) {
+              self.aiCheckDialogVisible = false;
+              const { csessionid, sig, token, value } = result;
+              resolve({ result: true, aiCheck: { csessionid, sig }, keyInfo });
+            }
+          };
+          setTimeout(() => {
+            const aliAiCheck = new noCaptcha(config);
+            aliAiCheck.upLang('cn', {
+              _startTEXT: '请按住滑块，拖动到最右边，提交订单',
+              _yesTEXT: '验证通过',
+              _error300: '哎呀，出错了，点击<a href="javascript:__nc.reset()">刷新</a>再来一次',
+              _errorNetwork: '网络不给力，请<a href="javascript:__nc.reset()">点击刷新</a>',
+            });
+          }, 0);
         }
       });
     },
@@ -842,31 +942,68 @@ export default {
           isLoading ? Core.ui.message.error('余票不足') : this.createLogContent('TC结果:[余票不足]');
           resolve({ result: false });
         } else {
-          isNeedLogger && this.createLogContent(`TC通过,乘客/座位:[${persons.map((person) => `${person.name}-${person.seatCode}`).join(',')}],车次:[${train ? train.trainCount : ''}],进行下单...`);
-          // 发起请求
-          const result = isLoading ?
-            await AsyncFuncs.orderTicket(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons, this.seatLocation.selectedLocations.join(''))
+          isNeedLogger && this.createLogContent(`TC通过,乘客/座位:[${persons.map((person) => `${person.name}-${person.seatCode}`).join(',')}],车次:[${train ? train.trainCount : ''}],进行预下单...`);
+          // 1. 发起预下单
+          const preOrderResult = isLoading ?
+            await AsyncFuncs.preOrderTicket(train.secStr, train.startN, train.endN, train.date, 'adult')
             :
-            await AsyncFuncs.orderTicketWithoutLoadingAndTips(train.trainNo, train.trainId, train.trainCount, train.secStr, train.startN, train.endN, train.date, train.location, 'adult', persons, this.seatLocation.selectedLocations.join(''));
-          // 请求成功 - 解析结果
-          if (result.result) {
-            // 下单成功
-            isLoading ? Core.ui.message.success(`下单成功,当前余票:[${result.queueInfo.ticket}],队列:[${result.queueInfo.count},${result.queueInfo.countT}]`) : this.createLogContent(`下单成功,当前余票:[${result.queueInfo.ticket}],队列:[${result.queueInfo.count},${result.queueInfo.countT}]`);
-            // 显示停止刷票按钮用于终止轮询队列
-            this.isAutoQuering = true;
-            // 开启出票轮询
-            this.loopQueueState(isLoading, train, (orderId) => {
-              // 成功出票
-              isLoading && Core.ui.message.success(`抢票成功,订单号[${orderId}],请及时前往12306付款`);
-              resolve({ result: true })
-            }, (trainInfo, err) => {
-              // 出票失败
-              (isLoading && err) && Core.ui.message.info(err);
+            await AsyncFuncs.preOrderTicketWithoutLoadingAndTips(train.secStr, train.startN, train.endN, train.date, 'adult');
+          // 1.1 预下单成功 - 需要拉起AI校验(dispatchAiCheck会自动根据传入的值走流程,只需要关注await的返回值)
+          if (preOrderResult.result) {
+            // keyInfo中含有AI认证的token,dispatchAiCheck()需要这两个数据才能调起
+            const { isNeedAiCheck, keyInfo } = preOrderResult.preOrderInfo;
+            // 处理日志
+            if (isNeedLogger) {
+              isNeedAiCheck ?
+                this.createLogContent(`预下单成功,需要完成人机识别...`)
+                :
+                this.createLogContent(`预下单成功,不需要完成人机识别,直接下单...`);
+            }
+            // 2. 获取AI校验的结果
+            const aiCheckResult = await this.dispatchAiCheck(isNeedAiCheck, keyInfo);
+            // 2.1 AI校验成功 - 发起下单
+            if (aiCheckResult.result) {
+              isNeedLogger && this.createLogContent(`人机识别成功,开始下单...`);
+              const { aiCheck, keyInfo } = aiCheckResult;
+              // 3. 发起下单
+              const orderResult = isLoading ?
+                await AsyncFuncs.orderTicket(train.trainNo, train.trainId, train.trainCount, train.startN, train.endN, train.date, train.location, persons, this.seatLocation.selectedLocations.join(''), keyInfo, aiCheck)
+                :
+                await AsyncFuncs.orderTicketWithoutLoadingAndTips(train.trainNo, train.trainId, train.trainCount, train.startN, train.endN, train.date, train.location, persons, this.seatLocation.selectedLocations.join(''), keyInfo, aiCheck);
+              // 3.1 下单成功 - 开始轮询队列状态
+              if (orderResult.result) {
+                isLoading ?
+                  Core.ui.message.success(`下单成功,当前余票:[${orderResult.queueInfo.ticket}],队列:[${orderResult.queueInfo.count},${orderResult.queueInfo.countT}]`)
+                  :
+                  this.createLogContent(`下单成功,当前余票:[${orderResult.queueInfo.ticket}],队列:[${orderResult.queueInfo.count},${orderResult.queueInfo.countT}]`);
+                // 显示停止刷票按钮用于终止轮询队列
+                this.isAutoQuering = true;
+                // 开启出票轮询
+                this.loopQueueState(isLoading, train, (orderId) => {
+                  // 成功出票
+                  isLoading && Core.ui.message.success(`抢票成功,订单号[${orderId}],请及时前往12306付款`);
+                  resolve({ result: true });
+                }, (trainInfo, err) => {
+                  // 出票失败
+                  (isLoading && err) && Core.ui.message.info(err);
+                  resolve({ result: false, trainInfo: train });
+                });
+              } 
+              // 3.2 下单失败 - 处理日志并resolve
+              else {
+                isLoading ? Core.ui.message.warn(orderResult.err) : this.createLogContent(`下单失败,原因:[${orderResult.err}]`);
+                resolve({ result: false, trainInfo: train });
+              }
+            } 
+            // 2.2 AI校验失败 - 打印日志并resolve
+            else {
+              isLoading ? Core.ui.message.error('人机识别失败') : this.createLogContent(`人机识别失败,下单失败`);
               resolve({ result: false, trainInfo: train });
-            });
-          } else {
-            // 下单失败
-            isLoading ? Core.ui.message.warn(result.err) : this.createLogContent(`下单失败,原因:[${result.err}]`);
+            }
+          } 
+          // 1.2 预下单失败 - 处理日志并resolve
+          else {
+            isLoading ? Core.ui.message.warn(preOrderResult.err) : this.createLogContent(`预下单失败,原因:[${preOrderResult.err}]`);
             resolve({ result: false, trainInfo: train });
           }
         }

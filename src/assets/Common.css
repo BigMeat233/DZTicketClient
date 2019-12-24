@@ -69,6 +69,10 @@
   height: 450px;
 }
 
+.aiCheckDialog > .el-dialog__body {
+  height: 40px;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

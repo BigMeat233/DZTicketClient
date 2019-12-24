@@ -156,11 +156,34 @@ class AsyncFuncs {
       }
     });
   }
+  // 预下单
+  static preOrderTicket(secStr, startStation, endStation, date, ticketType) {
+    return new Promise(async (resolve) => {
+      const result = await Network.preOrderTicket(secStr, startStation, endStation, date, ticketType);
+      if (result.result) {
+        resolve({ result: true, preOrderInfo: result.data.preOrderInfo });
+      } else {
+        resolve({ result: false, err: result.err.msg });
+      }
+    });
+  }
+
+  // 预下单不带菊花
+  static preOrderTicketWithoutLoadingAndTips(secStr, startStation, endStation, date, ticketType) {
+    return new Promise(async (resolve) => {
+      const result = await Network.preOrderTicket(secStr, startStation, endStation, date, ticketType, false);
+      if (result.result) {
+        resolve({ result: true, preOrderInfo: result.data.preOrderInfo });
+      } else {
+        resolve({ result: false, err: result.err.msg });
+      }
+    });
+  }
 
   // 下单(不带菊花)
-  static orderTicketWithoutLoadingAndTips(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, seatLocations) {
+  static orderTicketWithoutLoadingAndTips(trainNo, trainId, trainCount, startStation, endStation, date, location, personInfos, seatLocations, keyInfo, aiCheck) {
     return new Promise(async (resolve) => {
-      const result = await Network.orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, seatLocations, false);
+      const result = await Network.orderTicket(trainNo, trainId, trainCount, startStation, endStation, date, location, personInfos, seatLocations, keyInfo, aiCheck, false);
       if (result.result) {
         resolve({ result: true, queueInfo: result.data.queueInfo });
       } else {
@@ -170,9 +193,9 @@ class AsyncFuncs {
   }
 
   // 下单(带菊花)
-  static orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, seatLocations) {
+  static orderTicket(trainNo, trainId, trainCount, startStation, endStation, date, location, personInfos, seatLocations, keyInfo, aiCheck) {
     return new Promise(async (resolve) => {
-      const result = await Network.orderTicket(trainNo, trainId, trainCount, secStr, startStation, endStation, date, location, ticketType, personInfos, seatLocations);
+      const result = await Network.orderTicket(trainNo, trainId, trainCount, startStation, endStation, date, location, personInfos, seatLocations, keyInfo, aiCheck);
       if (result.result) {
         resolve({ result: true, queueInfo: result.data.queueInfo });
       } else {
@@ -322,10 +345,34 @@ class AsyncFuncs {
     });
   }
 
-  // 下候补单(带菊花)
-  static orderAlternates(dateTime, alternates, persons) {
+  // 预候补单
+  static preOrderAlternates(alternates) {
     return new Promise(async (resolve) => {
-      const result = await Network.orderAlternates(dateTime, alternates, persons);
+      const result = await Network.preOrderAlternates(alternates);
+      if (result.result) {
+        resolve({ result: true, preOrderInfo: result.data.preOrderInfo });
+      } else {
+        resolve({ result: false, err: result.err.msg });
+      }
+    });
+  }
+
+  // 预候补单(无菊花和提示)
+  static preOrderAlternatesWithoutLoadingAndTips(alternates) {
+    return new Promise(async (resolve) => {
+      const result = await Network.preOrderAlternates(alternates, false);
+      if (result.result) {
+        resolve({ result: true, preOrderInfo: result.data.preOrderInfo });
+      } else {
+        resolve({ result: false, err: result.err.msg });
+      }
+    });
+  }
+
+  // 下候补单(带菊花)
+  static orderAlternates(dateTime, alternates, persons, aiCheck) {
+    return new Promise(async (resolve) => {
+      const result = await Network.orderAlternates(dateTime, alternates, persons, aiCheck);
       if (result.result) {
         resolve({ result: true });
       } else {
@@ -335,9 +382,9 @@ class AsyncFuncs {
   }
 
   // 下候补单(无菊花和提示)
-  static orderAlternatesWithoutLoadingAndTips(dateTime, alternates, persons) {
+  static orderAlternatesWithoutLoadingAndTips(dateTime, alternates, persons, aiCheck) {
     return new Promise(async (resolve) => {
-      const result = await Network.orderAlternates(dateTime, alternates, persons, false);
+      const result = await Network.orderAlternates(dateTime, alternates, persons, aiCheck, false);
       if (result.result) {
         resolve({ result: true });
       } else {
