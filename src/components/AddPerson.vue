@@ -13,6 +13,14 @@
         <el-radio v-model="personInfo.sex" label="M">男</el-radio>
         <el-radio v-model="personInfo.sex" label="F">女</el-radio>
       </el-form-item>
+      <el-form-item label="乘客手机" required prop="phone">
+        <el-input
+          v-model="personInfo.phone"
+          placeholder="请输入乘客手机(+86)"
+          :style="{width:'195px'}"
+          clearable
+        />
+      </el-form-item>
       <el-form-item label="证件类型" required prop="certCode">
         <el-select v-model="personInfo.certCode" placeholder="请选择证件类型" :style="{width:'195px'}">
           <el-option
@@ -33,7 +41,7 @@
       </el-form-item>
       <el-form-item label="乘客类型" required prop="personCode">
         <el-select v-model="personInfo.personCode" placeholder="请选择证件类型" :style="{width:'195px'}">
-          <el-option key="1" label="成人" value="1"/>
+          <el-option key="1" label="成人" value="1" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -52,6 +60,7 @@ export default {
       personInfo: {
         name: '',
         sex: '',
+        phone: '',
         certCode: '',
         certNo: '',
         personCode: '1',

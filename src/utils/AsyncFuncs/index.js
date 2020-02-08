@@ -125,9 +125,9 @@ class AsyncFuncs {
     })
   }
 
-  static addPerson(name, sex, certCode, certNo, personCode) {
+  static addPerson(name, sex, phone, certCode, certNo, personCode) {
     return new Promise(async (resolve) => {
-      const result = await Network.addPerson(name, sex, certCode, certNo, personCode);
+      const result = await Network.addPerson(name, sex, phone, certCode, certNo, personCode);
       if (result.result) {
         Core.ui.message.success('添加乘客成功');
         resolve(true);

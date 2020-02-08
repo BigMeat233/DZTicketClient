@@ -6,6 +6,7 @@
     <label class="personInfoText">{{person.typeName}}</label>
     <label class="personInfoText">{{person.certType}}</label>
     <label class="personInfoText">{{person.certNo}}</label>
+    <label class="personInfoText">{{person.phone || '未设置手机'}}</label>
     <el-select v-model="person.seatCodes" placeholder="请选择座位类型" multiple>
       <el-option
         v-for="seatType in seatTypes"

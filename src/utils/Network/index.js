@@ -126,13 +126,14 @@ class Network {
     });
   }
 
-  static addPerson(name, sex, certCode, certNo, typeCode, isLoading = true) {
+  static addPerson(name, sex, phone, certCode, certNo, typeCode, isLoading = true) {
     return new Promise(async (resolve) => {
       const funcName = '/AddPerson.do';
       const params = {
         otnId: Core.local.getItem('otnId'),
         name,
         sex,
+        phone,
         certCode,
         certNo,
         typeCode

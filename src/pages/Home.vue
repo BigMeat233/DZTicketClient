@@ -380,14 +380,14 @@ export default {
     /**
      * 查询队列按钮点击
      */
-    async onQueryQueueBtnClick() {
+    onQueryQueueBtnClick() {
       this.category = 'queryQueue';
       this.typeSelectorDialogVisible = true;
     },
     /**
      * 取消排队按钮点击
      */
-    async onCancelQueueBtnClick() {
+    onCancelQueueBtnClick() {
       this.category = 'cancelQueue';
       this.typeSelectorDialogVisible = true;
     },
@@ -415,7 +415,7 @@ export default {
      * 添加乘客时点了确定
      */
     async onPersonInputFinish(personInfo) {
-      let result = await AsyncFuncs.addPerson(personInfo.name, personInfo.sex, personInfo.certCode, personInfo.certNo, personInfo.personCode);
+      let result = await AsyncFuncs.addPerson(personInfo.name, personInfo.sex, personInfo.phone, personInfo.certCode, personInfo.certNo, personInfo.personCode);
       if (result) {
         this.addPersonDialogVisble = false;
         this.updatePersons();
@@ -820,7 +820,7 @@ export default {
         // 1.1 预候补成功 - 需要拉起AI校验(dispatchAiCheck会自动根据传入的值走流程,只需要关注await的返回值)
         if (preOrderResult.result) {
           // keyInfo中含有AI认证的token,dispatchAiCheck()需要这两个数据才能调起
-          const { isNeedAiCheck, keyInfo } = preOrderResult.preOrderInfo; 
+          const { isNeedAiCheck, keyInfo } = preOrderResult.preOrderInfo;
           // 处理日志
           if (isNeedLogger) {
             isNeedAiCheck ?
@@ -857,7 +857,7 @@ export default {
                 isLoading && Core.ui.message.warn(err);
                 resolve({ result: false });
               });
-            } 
+            }
             // 3.2 候补请求失败 - 日志处理并resolve
             else {
               isLoading ? Core.ui.message.warn(orderResult.err) : this.createLogContent(`提交候补单失败,原因:[${orderResult.err}]`);
@@ -867,13 +867,13 @@ export default {
               }
               resolve({ result: false });
             }
-          } 
+          }
           // 2.2 AI校验失败 - 打印日志并resolve
           else {
             isLoading ? Core.ui.message.error('人机识别失败') : this.createLogContent(`人机识别失败,候补失败`);
             resolve({ result: false });
           }
-        } 
+        }
         // 1.2 预候补失败 - 打印日志并resolve
         else {
           isLoading ? Core.ui.message.warn(preOrderResult.err) : this.createLogContent(`预候补失败,原因:[${preOrderResult.err}]`);
@@ -988,19 +988,19 @@ export default {
                   (isLoading && err) && Core.ui.message.info(err);
                   resolve({ result: false, trainInfo: train });
                 });
-              } 
+              }
               // 3.2 下单失败 - 处理日志并resolve
               else {
                 isLoading ? Core.ui.message.warn(orderResult.err) : this.createLogContent(`下单失败,原因:[${orderResult.err}]`);
                 resolve({ result: false, trainInfo: train });
               }
-            } 
+            }
             // 2.2 AI校验失败 - 打印日志并resolve
             else {
               isLoading ? Core.ui.message.error('人机识别失败') : this.createLogContent(`人机识别失败,下单失败`);
               resolve({ result: false, trainInfo: train });
             }
-          } 
+          }
           // 1.2 预下单失败 - 处理日志并resolve
           else {
             isLoading ? Core.ui.message.warn(preOrderResult.err) : this.createLogContent(`预下单失败,原因:[${preOrderResult.err}]`);

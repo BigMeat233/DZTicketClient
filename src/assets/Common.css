@@ -61,6 +61,10 @@
   padding-left: 15px;
 }
 
+.addPersonDialog > .el-dialog__body {
+  height: 480px;
+}
+
 .recordDialog > .el-dialog__body {
   height: 450px;
 }
