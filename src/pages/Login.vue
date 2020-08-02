@@ -34,7 +34,7 @@
       </div>
     </div>
     <div class="versionDiv">
-      <label>DZTicket V1.2.9.0</label>
+      <label>DZTicket V1.2.10.0</label>
       <label>QQ:303569528</label>
       <label>Wechat:Dashuaige_Douzi</label>
       <label>请大家谨慎使用 遵纪守法</label>
@@ -43,6 +43,17 @@
       <label>特别鸣谢大鲜肉🍓同学亲自写了每一行代码</label>
       <label>没错就是本鲜肉😂</label>
     </div>
+    <el-dialog
+      title="人机识别"
+      width="350px"
+      custom-class="aiCheckDialog"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :before-close="aiCheckDialogClose"
+      :visible.sync="aiCheckDialogVisible"
+    >
+      <div id="aliDiv"></div>
+    </el-dialog>
     <el-dialog title="FAQ" :visible.sync="faqDialogVisble" :show-close="true">
       <div class="logDiv">
         <p>Q1:频繁刷票失败怎么办?</p>
@@ -82,6 +93,7 @@ export default {
       faqDialogVisble: false,
       isNeedImgCode: false,
       isNeedLocalLogin: false,
+      aiCheckDialogVisible: false
     };
   },
   methods: {
@@ -91,6 +103,11 @@ export default {
     },
     faqBtnClick() {
       this.faqDialogVisble = true;
+    },
+    aiCheckDialogClose(done) {
+      Core.ui.message.warn('用户取消登陆');
+      this.getCheckCode();
+      done();
     },
     async submitBtnClick() {
       if (this.userId === '') {
@@ -106,16 +123,34 @@ export default {
         return;
       }
       let answer = this.getAnswer();
-      let result = this.isNeedLocalLogin ?
-        await AsyncFuncs.localLogin(this.userId, this.userPwd, answer)
-        :
-        await AsyncFuncs.login(this.userId, this.userPwd, answer);
-      if (result) {
-        this.userId = '';
-        this.userPwd = '';
-        Core.navigator.push('/Home');
-      } else {
-        this.getCheckCode();
+      // 本地登陆
+      if (this.isNeedLocalLogin) {
+        let result = await AsyncFuncs.localLogin(this.userId, this.userPwd, answer);
+        if (result) {
+          this.userId = '';
+          this.userPwd = '';
+          Core.navigator.push('/Home');
+        } else {
+          this.getCheckCode();
+        }
+      }
+      // 统一登陆
+      else {
+        let { result, aiCheckCode } = await AsyncFuncs.getAiCheckCode(this.userId, answer);
+        if (!result) {
+          this.getCheckCode();
+        } else {
+          // 需要拉起拖动验证码
+          let aiCheckResult = await this.dispatchAiCheck(aiCheckCode);
+          let loginResult = await AsyncFuncs.login(this.userId, this.userPwd, answer, aiCheckResult);
+          if (loginResult) {
+            this.userId = '';
+            this.userPwd = '';
+            Core.navigator.push('/Home');
+          } else {
+            this.getCheckCode();
+          }
+        }
       }
     },
     getAnswer() {
@@ -138,13 +173,55 @@ export default {
       event.stopPropagation();
       this.points.splice(index, 1);
     },
+    dispatchAiCheck(aiCheckCode) {
+      return new Promise(resolve => {
+        const { isNeedAiCheck, aiCheckToken } = aiCheckCode;
+        if (!isNeedAiCheck) {
+          resolve({ sessionId: null, sig: null, token: null });
+        } else {
+          this.aiCheckDialogVisible = true;
+          const appkey = aiCheckToken.split(':').shift();
+          const self = this;
+          const config = {
+            renderTo: '#aliDiv',
+            appkey,
+            scene: 'nc_login',
+            token: aiCheckToken,
+            customWidth: 300,
+            trans: { key1: 'code0' },
+            elementID: ['usernameID'],
+            is_Opt: 0,
+            language: 'zh',
+            isEnabled: true,
+            timeout: 3000,
+            times: 5,
+            apimap: {},
+            callback(result) {
+              self.aiCheckDialogVisible = false;
+              const { csessionid, sig, token } = result;
+              resolve({ sessionId: csessionid, sig, token });
+            }
+          };
+          setTimeout(() => {
+            const aliAiCheck = new noCaptcha(config);
+            aliAiCheck.upLang('zh', {
+              _startTEXT: '请按住滑块，拖动到最右边，进行AI识别',
+              _yesTEXT: '验证通过',
+              _error300:
+                '哎呀，出错了，点击<a href="javascript:__nc.reset()">刷新</a>再来一次',
+              _errorNetwork:
+                '网络不给力，请<a href="javascript:__nc.reset()">点击刷新</a>'
+            });
+          }, 0);
+        }
+      });
+    },
     async getCheckCode() {
       this.points = [];
-      this.checkCodeImg = this.isNeedLocalLogin ?
-        await AsyncFuncs.getLocalCheckCode()
-        :
-        await AsyncFuncs.getCheckCode();
-    },
+      this.checkCodeImg = this.isNeedLocalLogin
+        ? await AsyncFuncs.getLocalCheckCode()
+        : await AsyncFuncs.getCheckCode();
+    }
   },
   async mounted() {
     const { confInfo } = await AsyncFuncs.initPage();

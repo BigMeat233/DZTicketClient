@@ -59,6 +59,19 @@ class Network {
     });
   }
 
+  static getAiCheckCode(userId, answer, isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/GetAiCheckCode.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+        userId,
+        answer,
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
   static localLogin(userId, userPwd, answer, isLoading = true) {
     return new Promise(async (resolve) => {
       const funcName = '/LocalLogin.do';
@@ -73,14 +86,18 @@ class Network {
     });
   }
 
-  static login(userId, userPwd, answer, isLoading = true) {
+  static login(userId, userPwd, answer, aiCheckResult, isLoading = true) {
     return new Promise(async (resolve) => {
       const funcName = '/Login.do';
+      const { sig, token, sessionId } = aiCheckResult;
       const params = {
         otnId: Core.local.getItem('otnId'),
         userId,
         userPwd,
-        answer
+        answer,
+        sig,
+        token,
+        sessionId,
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);

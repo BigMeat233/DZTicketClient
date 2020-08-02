@@ -23,5 +23,9 @@ Document: http://og.gl/doc
 + Run ```npm install && npm run dev``` in terminal
 + Open ```http://localhost:8080``` in browser
 
+### Using on Mac
+
++ Run ```chmod -R a+x /[some fs node]/DZTicket```
++ Run the bat or shell file as shown in introduce video
 
 ### Builder Based On Vue-Cli  

@@ -58,9 +58,27 @@ class AsyncFuncs {
     });
   }
 
-  static login(userId, userPwd, answer) {
+  static getAiCheckCode(userId, answer) {
     return new Promise(async (resolve) => {
-      const result = await Network.login(userId, userPwd, answer);
+      const result = await Network.getAiCheckCode(userId, answer);
+      if (result.result) {
+        resolve({
+          result: true,
+          aiCheckCode: result.data.aiCheckCode
+        });
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+        resolve({ result: false, aiCheckCode: {} });
+      } else {
+        Core.ui.message.error(result.err.msg);
+        resolve({ result: false, aiCheckCode: {} });
+      }
+    });
+  }
+
+  static login(userId, userPwd, answer, aiCheckResult) {
+    return new Promise(async (resolve) => {
+      const result = await Network.login(userId, userPwd, answer, aiCheckResult);
       if (result.result) {
         resolve(true);
       } else if (result.err.code === '1') {
