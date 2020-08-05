@@ -426,7 +426,7 @@ export default {
      * 删除乘客
      */
     async onPersonDelete(personInfo) {
-      let result = await AsyncFuncs.deletePerson(personInfo.name, personInfo.certCode, personInfo.certNo);
+      let result = await AsyncFuncs.deletePerson(personInfo.name, personInfo.certCode, personInfo.certNo, personInfo.secStr);
       if (result) {
         this.updatePersons();
       }

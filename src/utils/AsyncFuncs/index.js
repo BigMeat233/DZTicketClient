@@ -159,9 +159,9 @@ class AsyncFuncs {
     });
   }
 
-  static deletePerson(name, certType, certNo) {
+  static deletePerson(name, certType, certNo, secStr) {
     return new Promise(async (resolve) => {
-      const result = await Network.deletePerson(name, certType, certNo);
+      const result = await Network.deletePerson(name, certType, certNo, secStr);
       if (result.result) {
         Core.ui.message.success('删除乘客成功');
         resolve(true);

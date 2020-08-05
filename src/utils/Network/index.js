@@ -160,7 +160,7 @@ class Network {
     });
   }
 
-  static deletePerson(name, certCode, certNo, isLoading = true) {
+  static deletePerson(name, certCode, certNo, secStr, isLoading = true) {
     return new Promise(async (resolve) => {
       const funcName = '/DeletePerson.do';
       const params = {
@@ -168,6 +168,7 @@ class Network {
         name,
         certCode,
         certNo,
+        secStr,
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
