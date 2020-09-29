@@ -5,13 +5,27 @@
     </div>
     <div class="tipDiv">登陆</div>
     <div class="inputDiv">
-      <el-input v-model="userId" placeholder="请输入12306账号" clearable></el-input>
+      <el-input
+        v-model="userId"
+        placeholder="请输入12306账号"
+        clearable
+      ></el-input>
     </div>
     <div class="inputDiv">
-      <el-input v-model="userPwd" placeholder="请输入12306密码" type="password" clearable></el-input>
+      <el-input
+        v-model="userPwd"
+        placeholder="请输入12306密码"
+        type="password"
+        clearable
+      ></el-input>
     </div>
     <div class="submitBtnDiv">
-      <el-button type="primary" size="medium" @click.native="submitBtnClick($event)">登录</el-button>
+      <el-button
+        type="primary"
+        size="medium"
+        @click.native="submitBtnClick($event)"
+        >登录</el-button
+      >
     </div>
     <div class="checkCodeAreaDiv" v-if="isNeedImgCode">
       <div class="checkCodeDiv" @click="checkCodeDivClick($event)">
@@ -23,23 +37,25 @@
           @click.native="refreshBtnClick($event)"
         />
         <div
-          v-for="(point,index) in points"
+          v-for="(point, index) in points"
           :key="index"
-          :style="{left:(point.x-13) +'px',top:(point.y-13)+'px'}"
+          :style="{ left: point.x - 13 + 'px', top: point.y - 13 + 'px' }"
           class="pointDiv"
-          @click="pointClick(index,$event)"
+          @click="pointClick(index, $event)"
         >
           <img src="@/assets/images/logo.png" height="27" width="27" />
         </div>
       </div>
     </div>
     <div class="versionDiv">
-      <label>DZTicket V1.2.10.1</label>
+      <label>DZTicket V1.2.10.2</label>
       <label>QQ:303569528</label>
       <label>Wechat:Dashuaige_Douzi</label>
       <label>请大家谨慎使用 遵纪守法</label>
       <label>2019版本用了最新科技重构了代码</label>
-      <label style="color:orange">破解了12306设备码 每次登陆都模拟一个新设备</label>
+      <label style="color: orange"
+        >破解了12306设备码 每次登陆都模拟一个新设备</label
+      >
       <label>特别鸣谢大鲜肉🍓同学亲自写了每一行代码</label>
       <label>没错就是本鲜肉😂</label>
     </div>
@@ -57,19 +73,25 @@
     <el-dialog title="FAQ" :visible.sync="faqDialogVisble" :show-close="true">
       <div class="logDiv">
         <p>Q1:频繁刷票失败怎么办?</p>
-        <p>A1:首先需要确定查票的日期没有放票,如果已放票则尝试返回登录页面重新登录</p>
+        <p>
+          A1:首先需要确定查票的日期没有放票,如果已放票则尝试返回登录页面重新登录
+        </p>
         <br />
         <p>Q2:出现订单预处理失败?</p>
         <p>A2:尝试再次下单,若一直出现说明已掉线,返回登录页面重新登录</p>
         <br />
         <p>Q3:下单时提示请先选择需要抢票的乘客?</p>
-        <p>A3:需要点击[添加乘客],在里面选座后点击该乘客,出现屎黄色框框才表示该乘客被选中</p>
+        <p>
+          A3:需要点击[添加乘客],在里面选座后点击该乘客,出现屎黄色框框才表示该乘客被选中
+        </p>
         <br />
         <p>Q4:刷票时提示起点站或终点站不存在?</p>
         <p>A4:需要务必保证起点站和终点站在12306系统中存在</p>
         <br />
         <p>Q5:静默刷票卡住?</p>
-        <p>A5:打开[刷票日志],若日志长时间不变化说明未在刷票,尝试刷新页面后再次进行刷票</p>
+        <p>
+          A5:打开[刷票日志],若日志长时间不变化说明未在刷票,尝试刷新页面后再次进行刷票
+        </p>
         <br />
         <p>Q6:出票成功后怎么支付?</p>
         <p>A6:需要手机或者PC登录12306进入我的订单进行支付</p>
@@ -184,7 +206,7 @@ export default {
           const self = this;
           const config = {
             renderTo: '#aliDiv',
-            appkey,
+            appkey: 'FFFF0N000000000097AD',
             scene: 'nc_login',
             token: aiCheckToken,
             customWidth: 300,
