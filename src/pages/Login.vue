@@ -48,7 +48,7 @@
       </div>
     </div>
     <div class="versionDiv">
-      <label>DZTicket V1.2.10.2</label>
+      <label>DZTicket V1.2.10.3</label>
       <label>QQ:303569528</label>
       <label>Wechat:Dashuaige_Douzi</label>
       <label>请大家谨慎使用 遵纪守法</label>
@@ -206,7 +206,7 @@ export default {
           const self = this;
           const config = {
             renderTo: '#aliDiv',
-            appkey: 'FFFF0N000000000097AD',
+            appkey,
             scene: 'nc_login',
             token: aiCheckToken,
             customWidth: 300,
