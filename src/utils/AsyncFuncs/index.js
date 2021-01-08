@@ -107,11 +107,15 @@ class AsyncFuncs {
   }
 
   // 查询车票(带菊花)
-  static queryTickets(startStation, endStation, date, ticketType) {
+  static queryTickets(startStation, endStation, date, ticketType, isStationStrict) {
     return new Promise(async (resolve) => {
       const result = await Network.queryTickets(startStation, endStation, date, ticketType);
       if (result.result) {
-        resolve(result.data.ticketInfos);
+        const ticketInfos = isStationStrict
+          ? (result.data.ticketInfos || [])
+            .filter(({ startStr, endStr }) => startStr === startStation && endStr === endStation)
+          : result.data.ticketInfos;
+        resolve(ticketInfos);
       } else {
         resolve([]);
       }
@@ -119,11 +123,15 @@ class AsyncFuncs {
   }
 
   // 查询车票(不带菊花和提示)
-  static queryTicketsWithoutLoading(startStation, endStation, date, ticketType) {
+  static queryTicketsWithoutLoading(startStation, endStation, date, ticketType, isStationStrict) {
     return new Promise(async (resolve) => {
       const result = await Network.queryTickets(startStation, endStation, date, ticketType, false);
       if (result.result) {
-        resolve(result.data.ticketInfos);
+        const ticketInfos = isStationStrict
+          ? (result.data.ticketInfos || [])
+            .filter(({ startStr, endStr }) => startStr === startStation && endStr === endStation)
+          : result.data.ticketInfos;
+        resolve(ticketInfos);
       } else {
         resolve([]);
       }

@@ -1,6 +1,9 @@
 <template>
   <div class="ticketConfigDiv">
     <el-form :model="ticketConfig" label-width="25%" ref="form">
+      <el-form-item label="严格站名">
+        <el-switch v-model="ticketConfig.isStationStrict"></el-switch>
+      </el-form-item>
       <el-form-item label="自动提交">
         <el-switch v-model="ticketConfig.isAutoCommit"></el-switch>
       </el-form-item>

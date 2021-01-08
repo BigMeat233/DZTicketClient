@@ -56,7 +56,7 @@
           />
         </el-select>
         <person
-          v-for="(person,index) in persons"
+          v-for="(person, index) in persons"
           v-model="persons[index]"
           :key="index"
           style="width: 80%"
@@ -64,7 +64,12 @@
         />
       </div>
       <div class="addPersonBtnDiv">
-        <el-button type="primary" icon="el-icon-plus" @click.native="onAddPersonBtnClick">添加乘客</el-button>
+        <el-button
+          type="primary"
+          icon="el-icon-plus"
+          @click.native="onAddPersonBtnClick"
+          >添加乘客</el-button
+        >
       </div>
       <el-dialog
         append-to-body
@@ -73,7 +78,10 @@
         custom-class="addPersonDialog"
         :visible.sync="addPersonDialogVisble"
       >
-        <add-person ref="addPerson" @onPersonInputFinish="onPersonInputFinish" />
+        <add-person
+          ref="addPerson"
+          @onPersonInputFinish="onPersonInputFinish"
+        />
       </el-dialog>
     </el-dialog>
     <!-- 刷票配置弹框 -->
@@ -126,7 +134,9 @@
       :visible.sync="recordDialogVisible"
     >
       <div class="recordContainer">
-        <div class="recordItem" v-for="(record,index) in records" :key="index">{{record}}</div>
+        <div class="recordItem" v-for="(record, index) in records" :key="index">
+          {{ record }}
+        </div>
       </div>
       <div class="clearBtnDiv">
         <el-button type="primary" @click="onClearBtnClick">清除</el-button>
@@ -241,6 +251,7 @@ export default {
       },
       // 刷票配置
       ticketConfig: {
+        isStationStrict: false,
         isAutoCommit: false,
         isAutoQuery: false,
         queryInterval: '',
@@ -1019,6 +1030,7 @@ export default {
       const endStation = this.ticketLimit.endStation;
       const date = this.ticketLimit.date;
       const ticketType = this.ticketLimit.ticketType;
+      const isStationStrict = this.ticketConfig.isStationStrict;
       let isAutoQuery = this.ticketConfig.isAutoQuery; // 此值可能在后续逻辑中被改变
 
       // 如果打开了自动刷票 - 显示停止刷票按钮
@@ -1038,9 +1050,9 @@ export default {
 
       // 根据是否打开自动刷票决定请求带不带菊花的接口
       let ticketInfos = isAutoQuery ?
-        await AsyncFuncs.queryTicketsWithoutLoading(startStation, endStation, date, ticketType)
+        await AsyncFuncs.queryTicketsWithoutLoading(startStation, endStation, date, ticketType, isStationStrict)
         :
-        await AsyncFuncs.queryTickets(startStation, endStation, date, ticketType);
+        await AsyncFuncs.queryTickets(startStation, endStation, date, ticketType, isStationStrict);
 
       // 车次过滤
       // 若车次过滤开启,则列表中仅显示白名单中的数据
