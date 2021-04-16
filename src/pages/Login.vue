@@ -48,7 +48,7 @@
       </div>
     </div>
     <div class="versionDiv">
-      <label>DZTicket V1.2.10.3</label>
+      <label>DZTicket V1.2.11</label>
       <label>QQ:303569528</label>
       <label>Wechat:Dashuaige_Douzi</label>
       <label>请大家谨慎使用 遵纪守法</label>

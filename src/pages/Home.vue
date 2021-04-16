@@ -1060,15 +1060,13 @@ export default {
       if (!this.ticketConfig.isTrainLimit) {
         this.ticketInfos = ticketInfos;
       } else {
+        const applyTicketInfos = [];
         let trainLimitArr = this.ticketConfig.trainLimit.split(' ');
-        this.ticketInfos = ticketInfos.filter((ticketInfo) => {
-          for (let i = 0; i < trainLimitArr.length; i++) {
-            if (trainLimitArr[i] === ticketInfo.trainCount) {
-              return true;
-            }
-          }
-          return false;
-        });
+        for(let i = 0; i < trainLimitArr.length; i++) {
+          const ticketInfo = ticketInfos.find(({trainCount}) => trainCount === trainLimitArr[i]);
+          ticketInfo && applyTicketInfos.push(ticketInfo);
+        }
+        this.ticketInfos = applyTicketInfos;
       }
       isAutoQuery && this.createLogContent(`车票白名单过滤结果为:[${this.ticketInfos.map((ticketInfo) => ticketInfo.trainCount).join(',')}]`);
       // 自动提交
