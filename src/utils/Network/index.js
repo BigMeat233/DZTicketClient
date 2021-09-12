@@ -59,42 +59,81 @@ class Network {
     });
   }
 
-  static getAiCheckCode(userId, answer, isLoading = true) {
+  static getMsgCheckCode(userId, certNo, isLoading = true) {
     return new Promise(async (resolve) => {
-      const funcName = '/GetAiCheckCode.do';
+      const funcName = '/GetMsgCheckCode.do';
       const params = {
         otnId: Core.local.getItem('otnId'),
         userId,
-        answer,
+        certNo,
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
     });
   }
 
-  static localLogin(userId, userPwd, answer, isLoading = true) {
+  static getLoginAiCheckCode(userId, isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/GetLoginAiCheckCode.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+        userId,
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static getLocalLoginAiCheckCode(isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/GetLocalLoginAiCheckCode.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static localLogin(userId, userPwd, randCode, aiCheckResult, isLoading = true) {
     return new Promise(async (resolve) => {
       const funcName = '/LocalLogin.do';
+      const { sig, token, sessionId } = aiCheckResult || {};
       const params = {
         otnId: Core.local.getItem('otnId'),
         userId,
         userPwd,
-        answer: answer === '' ? undefined : answer
+        randCode,
+        sig,
+        token,
+        sessionId,
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
     });
   }
 
-  static login(userId, userPwd, answer, aiCheckResult, isLoading = true) {
+  static preLogin(userId, isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/PreLogin.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+        userId,
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static login(userId, userPwd, randCode, aiCheckResult, isLoading = true) {
     return new Promise(async (resolve) => {
       const funcName = '/Login.do';
-      const { sig, token, sessionId } = aiCheckResult;
+      const { sig, token, sessionId } = aiCheckResult || {};
       const params = {
         otnId: Core.local.getItem('otnId'),
         userId,
         userPwd,
-        answer,
+        randCode,
         sig,
         token,
         sessionId,

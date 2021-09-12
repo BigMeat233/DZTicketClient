@@ -24,31 +24,12 @@
         type="primary"
         size="medium"
         @click.native="submitBtnClick($event)"
-        >登录</el-button
       >
-    </div>
-    <div class="checkCodeAreaDiv" v-if="isNeedImgCode">
-      <div class="checkCodeDiv" @click="checkCodeDivClick($event)">
-        <img :src="checkCodeImg" />
-        <el-button
-          icon="el-icon-refresh"
-          size="mini"
-          class="refreshBtn"
-          @click.native="refreshBtnClick($event)"
-        />
-        <div
-          v-for="(point, index) in points"
-          :key="index"
-          :style="{ left: point.x - 13 + 'px', top: point.y - 13 + 'px' }"
-          class="pointDiv"
-          @click="pointClick(index, $event)"
-        >
-          <img src="@/assets/images/logo.png" height="27" width="27" />
-        </div>
-      </div>
+        登录
+      </el-button>
     </div>
     <div class="versionDiv">
-      <label>DZTicket V1.2.11</label>
+      <label>DZTicket V1.3.0</label>
       <label>QQ:303569528</label>
       <label>Wechat:Dashuaige_Douzi</label>
       <label>请大家谨慎使用 遵纪守法</label>
@@ -60,15 +41,46 @@
       <label>没错就是本鲜肉😂</label>
     </div>
     <el-dialog
-      title="人机识别"
-      width="350px"
+      title="登录认证"
+      width="550px"
       custom-class="aiCheckDialog"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
       :before-close="aiCheckDialogClose"
       :visible.sync="aiCheckDialogVisible"
     >
-      <div id="aliDiv"></div>
+      <el-tabs tab-position="left">
+        <el-tab-pane label="滑动认证" v-if="isAiCheckSupported">
+          <div id="aliDiv" v-if="aiCheckCode"></div>
+          <div v-else>AI认证暂不可用</div>
+        </el-tab-pane>
+        <el-tab-pane label="短信认证" v-if="isMsgCheckSupported">
+          <div class="msgCheckContent">
+            <el-input
+              placeholder="请输入账号绑定证件的后4位"
+              maxlength="4"
+              v-model="certNo"
+            >
+              <el-button type="parimary" slot="append" @click.native="sendMsg">
+                发送短信
+              </el-button>
+            </el-input>
+            <el-input
+              class="msgCheckElement"
+              placeholder="请输入短信验证码"
+              v-model="randCode"
+              maxlength="6"
+            >
+            </el-input>
+            <el-button
+              type="primary"
+              class="msgCheckElement"
+              @click="commonLogin(randCode, null)"
+              >登陆</el-button
+            >
+          </div>
+        </el-tab-pane>
+      </el-tabs>
     </el-dialog>
     <el-dialog title="FAQ" :visible.sync="faqDialogVisble" :show-close="true">
       <div class="logDiv">
@@ -101,36 +113,70 @@
 </template>
 
 <script>
-import defaultImg from '@/assets/images/checkCodeImg.png';
 import AsyncFuncs from '@/utils/AsyncFuncs';
 import Core from '@/utils/Core';
 export default {
   name: 'Login',
   data() {
     return {
+      // 用户输入
       userId: '',
       userPwd: '',
-      points: [],
-      checkCodeImg: defaultImg,
-      faqDialogVisble: false,
-      isNeedImgCode: false,
+      // 登录认证
+      certNo: '',
+      randCode: '',
+      aiCheckCode: null,
+      // 登录配置
       isNeedLocalLogin: false,
+      isAiCheckSupported: false,
+      isMsgCheckSupported: false,
+      // 弹框显示情况
+      faqDialogVisble: false,
       aiCheckDialogVisible: false
     };
   },
   methods: {
-    refreshBtnClick(event) {
-      event.stopPropagation();
-      this.getCheckCode();
+    // 发送验证码
+    async sendMsg() {
+      const userId = this.userId;
+      const certNo = this.certNo;
+      if (!userId) {
+        Core.ui.message.warn('请输入12306账号');
+        return;
+      }
+
+      if (!certNo) {
+        Core.ui.message.warn('请输入身份证号后4位');
+        return;
+      }
+
+      const result = await AsyncFuncs.getMsgCheckCode(userId, certNo);
+      if (result) {
+        Core.ui.message.success('短信发送成功');
+      }
     },
+    // 核心登录
+    async commonLogin(randCode, aiCheckResult) {
+      const method = this.isNeedLocalLogin ? AsyncFuncs.localLogin : AsyncFuncs.login;
+      const result = await method(this.userId, this.userPwd, randCode, aiCheckResult);
+      if (result) {
+        this.userId = '';
+        this.userPwd = '';
+        Core.navigator.push('/Home');
+      } else {
+        this.submitBtnClick();
+      }
+    },
+    // FAQ按钮点击
     faqBtnClick() {
       this.faqDialogVisble = true;
     },
+    // 验证弹框被关闭
     aiCheckDialogClose(done) {
       Core.ui.message.warn('用户取消登陆');
-      this.getCheckCode();
       done();
     },
+    // 点击登录
     async submitBtnClick() {
       if (this.userId === '') {
         Core.ui.message.warn('请输入12306账号');
@@ -140,122 +186,133 @@ export default {
         Core.ui.message.warn('请输入12306密码');
         return;
       }
-      if (this.isNeedImgCode && this.points.length === 0) {
-        Core.ui.message.warn('请往验证码上点狗头');
-        return;
-      }
-      let answer = this.getAnswer();
+
       // 本地登陆
       if (this.isNeedLocalLogin) {
-        let result = await AsyncFuncs.localLogin(this.userId, this.userPwd, answer);
-        if (result) {
-          this.userId = '';
-          this.userPwd = '';
-          Core.navigator.push('/Home');
-        } else {
-          this.getCheckCode();
+        // 不支持AI认证时直接发起登陆
+        if (!this.isAiCheckSupported) {
+          this.commonLogin(null, null);
+          return;
+        }
+
+        // 支持AI认证时先打开认证弹框,防止因为读取AI认证数据失败导致无法验证
+        this.aiCheckDialogVisible = true;
+        // 拉取AI认证数据
+        const { result: aiCheckCodeResult, aiCheckCode } = await AsyncFuncs.getLocalLoginAiCheckCode(this.userId);
+        // 本地登录下不需要判断needAiCheck,这个值恒为true
+        if (aiCheckCodeResult) {
+          this.aiCheckCode = aiCheckCode;
+          this.$nextTick(() => {
+            const { aiCheckToken } = aiCheckCode;
+            this.renderAiCheckDom(aiCheckToken).then((aiCheckResult) => this.commonLogin(null, aiCheckResult));
+          });
         }
       }
       // 统一登陆
       else {
-        let { result, aiCheckCode } = await AsyncFuncs.getAiCheckCode(this.userId, answer);
-        if (!result) {
-          this.getCheckCode();
-        } else {
-          // 需要拉起拖动验证码
-          let aiCheckResult = await this.dispatchAiCheck(aiCheckCode);
-          let loginResult = await AsyncFuncs.login(this.userId, this.userPwd, answer, aiCheckResult);
-          if (loginResult) {
-            this.userId = '';
-            this.userPwd = '';
-            Core.navigator.push('/Home');
-          } else {
-            this.getCheckCode();
-          }
+        // 拉取统一登录的配置信息
+        const { result: preLoginResult, loginConf } = await AsyncFuncs.preLogin(this.userId);
+        if (!preLoginResult) { return }
+        const { isAiCheckSupported, isMsgCheckSupported } = loginConf;
+
+        // 当不支持滑动/短信认证时 - 直接发起登陆
+        if (!isAiCheckSupported && !isMsgCheckSupported) {
+          this.commonLogin(null, null);
+          return;
         }
+
+        // 当任意支持一种情况时,先打开认证弹框,防止因为读取AI认证数据失败导致无法验证
+        this.aiCheckDialogVisible = true;
+        this.isAiCheckSupported = isAiCheckSupported;
+        this.isMsgCheckSupported = isMsgCheckSupported;
+
+        // 拉取AI认证数据
+        const { result: aiCheckCodeResult, aiCheckCode } = await AsyncFuncs.getLoginAiCheckCode(this.userId);
+        // 当不需要AI认证时 -直接登录
+        if (aiCheckCodeResult && !aiCheckCode.isNeedAiCheck) {
+          this.commonLogin(null, null);
+          return;
+        }
+
+        // 当需要AI认证时,更新AI认证数据
+        this.aiCheckCode = aiCheckCode;
+        // 渲染阿里AI认证
+        this.$nextTick(() => {
+          const { aiCheckToken } = aiCheckCode;
+          this.renderAiCheckDom(aiCheckToken).then((aiCheckResult) => this.commonLogin(null, aiCheckResult));
+        });
       }
     },
-    getAnswer() {
-      let answer = [];
-      this.points.forEach(point => {
-        answer.push(point.x.toString());
-        answer.push((point.y - 30).toString());
-      });
-      answer = answer.join(',');
-      return answer;
-    },
-    checkCodeDivClick(event) {
-      var point = {
-        x: event.layerX,
-        y: event.layerY
-      };
-      this.points.push(point);
-    },
-    pointClick(index, event) {
-      event.stopPropagation();
-      this.points.splice(index, 1);
-    },
-    dispatchAiCheck(aiCheckCode) {
-      return new Promise(resolve => {
-        const { isNeedAiCheck, aiCheckToken } = aiCheckCode;
-        if (!isNeedAiCheck) {
-          resolve({ sessionId: null, sig: null, token: null });
-        } else {
-          this.aiCheckDialogVisible = true;
-          const appkey = aiCheckToken.split(':').shift();
-          const self = this;
-          const config = {
-            renderTo: '#aliDiv',
-            appkey,
-            scene: 'nc_login',
-            token: aiCheckToken,
-            customWidth: 300,
-            trans: { key1: 'code0' },
-            elementID: ['usernameID'],
-            is_Opt: 0,
-            language: 'zh',
-            isEnabled: true,
-            timeout: 3000,
-            times: 5,
-            apimap: {},
-            callback(result) {
-              self.aiCheckDialogVisible = false;
-              const { csessionid, sig, token } = result;
-              resolve({ sessionId: csessionid, sig, token });
-            }
-          };
-          setTimeout(() => {
-            const aliAiCheck = new noCaptcha(config);
-            aliAiCheck.upLang('zh', {
-              _startTEXT: '请按住滑块，拖动到最右边，进行AI识别',
-              _yesTEXT: '验证通过',
-              _error300:
-                '哎呀，出错了，点击<a href="javascript:__nc.reset()">刷新</a>再来一次',
-              _errorNetwork:
-                '网络不给力，请<a href="javascript:__nc.reset()">点击刷新</a>'
-            });
-          }, 0);
-        }
+    renderAiCheckDom(aiCheckToken) {
+      return new Promise((resolve) => {
+        const appkey = aiCheckToken.split(':').shift();
+        const config = {
+          renderTo: '#aliDiv',
+          appkey,
+          scene: 'nc_login',
+          token: aiCheckToken,
+          customWidth: 300,
+          trans: { key1: 'code0' },
+          elementID: ['usernameID'],
+          is_Opt: 0,
+          language: 'zh',
+          isEnabled: true,
+          timeout: 3000,
+          times: 5,
+          apimap: {},
+          callback(result) {
+            const { csessionid, sig, token } = result;
+            resolve({ sessionId: csessionid, sig, token });
+          }
+        };
+        const aliAiCheck = new noCaptcha(config);
+        aliAiCheck.upLang('zh', {
+          _startTEXT: '请按住滑块，拖动到最右边，进行AI识别',
+          _yesTEXT: '验证通过',
+          _error300:
+            '哎呀，出错了，点击<a href="javascript:__nc.reset()">刷新</a>再来一次',
+          _errorNetwork:
+            '网络不给力，请<a href="javascript:__nc.reset()">点击刷新</a>'
+        });
       });
     },
-    async getCheckCode() {
-      this.points = [];
-      this.checkCodeImg = this.isNeedLocalLogin
-        ? await AsyncFuncs.getLocalCheckCode()
-        : await AsyncFuncs.getCheckCode();
-    }
   },
   async mounted() {
+    // 拉取配置信息
     const { confInfo } = await AsyncFuncs.initPage();
-    const { isNeedImgCode, isNeedLocalLogin } = confInfo;
-    this.isNeedImgCode = isNeedImgCode;
+    const {
+      isNeedLocalLogin,
+      isLocalAiCheckSupported,
+      isLocalMsgCheckSupported
+    } = confInfo;
     this.isNeedLocalLogin = isNeedLocalLogin;
+    // 如果isNeedLocalLogin是true,登录环节将不会再改变isAiCheckSupported和isMsgCheckSupported
+    // 否则将在点击登录按钮时刷新isAiCheckSupported和isMsgCheckSupported的值
+    this.isAiCheckSupported = isLocalAiCheckSupported;
+    this.isMsgCheckSupported = isLocalMsgCheckSupported;
+    // 注册设备
     await AsyncFuncs.registerDevice();
-    isNeedImgCode && this.getCheckCode();
   }
 };
 </script>
 
+<style>
+.aiCheckDialog > .el-dialog__body {
+  height: 350px;
+}
+
+.aiCheckDialog .el-tabs.el-tabs--left {
+  height: 100%;
+}
+
+.aiCheckDialog .el-tabs__content {
+  height: 100%;
+}
+
+.aiCheckDialog .el-tab-pane {
+  height: 100%;
+}
+</style>
 <style scoped>
 .loginDiv {
   height: 100%;
@@ -269,7 +326,7 @@ export default {
 .extendDiv {
   position: absolute;
   right: 0;
-  -webkit-user-select: none;
+  user-select: none;
 }
 
 .linkBtn {
@@ -334,6 +391,17 @@ export default {
 
 .logDiv {
   text-align: left;
+}
+
+.msgCheckContent {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.msgCheckElement {
+  margin-top: 10px;
 }
 </style>
 

@@ -58,9 +58,9 @@ class AsyncFuncs {
     });
   }
 
-  static getAiCheckCode(userId, answer) {
+  static getLoginAiCheckCode(userId) {
     return new Promise(async (resolve) => {
-      const result = await Network.getAiCheckCode(userId, answer);
+      const result = await Network.getLoginAiCheckCode(userId);
       if (result.result) {
         resolve({
           result: true,
@@ -76,9 +76,27 @@ class AsyncFuncs {
     });
   }
 
-  static login(userId, userPwd, answer, aiCheckResult) {
+  static getLocalLoginAiCheckCode() {
     return new Promise(async (resolve) => {
-      const result = await Network.login(userId, userPwd, answer, aiCheckResult);
+      const result = await Network.getLocalLoginAiCheckCode();
+      if (result.result) {
+        resolve({
+          result: true,
+          aiCheckCode: result.data.aiCheckCode
+        });
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+        resolve({ result: false, aiCheckCode: {} });
+      } else {
+        Core.ui.message.error(result.err.msg);
+        resolve({ result: false, aiCheckCode: {} });
+      }
+    });
+  }
+
+  static getMsgCheckCode(userId, certNo) {
+    return new Promise(async (resolve) => {
+      const result = await Network.getMsgCheckCode(userId, certNo);
       if (result.result) {
         resolve(true);
       } else if (result.err.code === '1') {
@@ -91,9 +109,39 @@ class AsyncFuncs {
     });
   }
 
-  static localLogin(userId, userPwd, answer) {
+  static preLogin(userId) {
     return new Promise(async (resolve) => {
-      const result = await Network.localLogin(userId, userPwd, answer);
+      const result = await Network.preLogin(userId);
+      if (result.result) {
+        resolve({ result: true, loginConf: result.data.loginConf });
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+        resolve({ result: false, loginConf: {} });
+      } else {
+        Core.ui.message.error(result.err.msg);
+        resolve({ result: false, loginConf: {} });
+      }
+    });
+  }
+
+  static login(userId, userPwd, randCode, aiCheckResult) {
+    return new Promise(async (resolve) => {
+      const result = await Network.login(userId, userPwd, randCode, aiCheckResult);
+      if (result.result) {
+        resolve(true);
+      } else if (result.err.code === '1') {
+        Core.ui.message.warn(result.err.msg);
+        resolve(false);
+      } else {
+        Core.ui.message.error(result.err.msg);
+        resolve(false);
+      }
+    });
+  }
+
+  static localLogin(userId, userPwd, randCode, aiCheckResult) {
+    return new Promise(async (resolve) => {
+      const result = await Network.localLogin(userId, userPwd, randCode, aiCheckResult);
       if (result.result) {
         resolve(true);
       } else if (result.err.code === '1') {
