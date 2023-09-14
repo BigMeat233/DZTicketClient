@@ -5,50 +5,33 @@
     </div>
     <div class="tipDiv">登陆</div>
     <div class="inputDiv">
-      <el-input
-        v-model="userId"
-        placeholder="请输入12306账号"
-        clearable
-      ></el-input>
+      <el-input v-model="userId" placeholder="请输入12306账号" clearable></el-input>
     </div>
     <div class="inputDiv">
-      <el-input
-        v-model="userPwd"
-        placeholder="请输入12306密码"
-        type="password"
-        clearable
-      ></el-input>
+      <el-input v-model="userPwd" placeholder="请输入12306密码" type="password" clearable></el-input>
     </div>
     <div class="submitBtnDiv">
-      <el-button
-        type="primary"
-        size="medium"
-        @click.native="submitBtnClick($event)"
-      >
+      <el-button type="primary" size="medium" @click.native="submitBtnClick($event)">
         登录
       </el-button>
     </div>
+    <div class="scanLoginBtn" @click="scanLoginBtnClick($event)">扫码登录</div>
     <div class="versionDiv">
-      <label>DZTicket V1.3.1</label>
+      <label>DZTicket V1.4.0</label>
       <label>QQ:303569528</label>
       <label>Wechat:Dashuaige_Douzi</label>
       <label>请大家谨慎使用 遵纪守法</label>
       <label>2019版本用了最新科技重构了代码</label>
-      <label style="color: orange"
-        >破解了12306设备码 每次登陆都模拟一个新设备</label
-      >
+      <label style="color: orange">破解了12306设备码 每次登陆都模拟一个新设备</label>
       <label>特别鸣谢大鲜肉🍓同学亲自写了每一行代码</label>
       <label>没错就是本鲜肉😂</label>
     </div>
-    <el-dialog
-      title="登录认证"
-      width="550px"
-      custom-class="aiCheckDialog"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-      :before-close="aiCheckDialogClose"
-      :visible.sync="aiCheckDialogVisible"
-    >
+    <el-dialog title="登录二维码" :visible.sync="loginQrcodeDialogVisible" custom-class="loginQrcodeDialog" :before-close="onLoginQrcodeDialogClose">
+      <img class="loginQrcodeImg" :src="loginQrcodeImage" />
+      <div class="loginQrcodeStateText">等待扫描</div>
+    </el-dialog>
+    <el-dialog title="登录认证" width="550px" custom-class="aiCheckDialog" :close-on-click-modal="false"
+      :close-on-press-escape="false" :before-close="aiCheckDialogClose" :visible.sync="aiCheckDialogVisible">
       <el-tabs tab-position="left">
         <el-tab-pane label="滑动认证" v-if="isAiCheckSupported">
           <div id="aliDiv" v-if="aiCheckCode"></div>
@@ -56,28 +39,14 @@
         </el-tab-pane>
         <el-tab-pane label="短信认证" v-if="isMsgCheckSupported">
           <div class="msgCheckContent">
-            <el-input
-              placeholder="请输入账号绑定证件的后4位"
-              maxlength="4"
-              v-model="certNo"
-            >
+            <el-input placeholder="请输入账号绑定证件的后4位" maxlength="4" v-model="certNo">
               <el-button type="parimary" slot="append" @click.native="sendMsg">
                 发送短信
               </el-button>
             </el-input>
-            <el-input
-              class="msgCheckElement"
-              placeholder="请输入短信验证码"
-              v-model="randCode"
-              maxlength="6"
-            >
+            <el-input class="msgCheckElement" placeholder="请输入短信验证码" v-model="randCode" maxlength="6">
             </el-input>
-            <el-button
-              type="primary"
-              class="msgCheckElement"
-              @click="commonLogin(randCode, null)"
-              >登陆</el-button
-            >
+            <el-button type="primary" class="msgCheckElement" @click="commonLogin(randCode, null)">登陆</el-button>
           </div>
         </el-tab-pane>
       </el-tabs>
@@ -132,7 +101,11 @@ export default {
       isMsgCheckSupported: false,
       // 弹框显示情况
       faqDialogVisble: false,
-      aiCheckDialogVisible: false
+      aiCheckDialogVisible: false,
+      loginQrcodeDialogVisible: false,
+      // 登录二维码
+      loginQrcodeImage: '',
+      loginQrcodeLoopTimer: null,
     };
   },
   methods: {
@@ -243,6 +216,44 @@ export default {
         });
       }
     },
+    // 点击二维码登录
+    async scanLoginBtnClick() {
+      const qrcodeData = await AsyncFuncs.getLoginQrcode();
+      if (!qrcodeData) {
+        return;
+      }
+      const { qrcodeImage, qrcodeId } = qrcodeData;
+
+      // 开启弹框
+      this.loginQrcodeDialogVisible = true;
+      this.loginQrcodeImage = `data:image/jpg;base64,${qrcodeImage}`;
+
+      // 开启轮询
+      this.loginQrcodeLoopTimer = setInterval(async () => {
+        const loginResult = await this.handleLoginQrcodeState(qrcodeId);
+        if (loginResult) {
+          this.loginQrcodeDialogVisible = false;
+          clearInterval(this.loginQrcodeLoopTimer);
+        }
+      }, 1000);
+    },
+    async handleLoginQrcodeState(qrcodeId) {
+      const qrcodeState = await AsyncFuncs.getLoginQrcodeState(qrcodeId);
+      const qrcodeStateTextMap = {
+        'WAITING': '等待扫描',
+        'SCANED': '已扫描，等待确认',
+        'CONFIRMED': '确认成功，正在跳转',
+        'EXPIRED': '二维码过期，请重试',
+        'CANCELED': '扫码取消，请重试'
+      };
+      this.loginQrcodeStateText = qrcodeStateTextMap[qrcodeState] || '未知异常，请重试';
+      if (qrcodeState === 'CONFIRMED') {
+        const refreshResult = await AsyncFuncs.refreshToken();
+        refreshResult ? Core.navigator.push('/Home') : setTimeout(() => location.reload(), 1500);
+        return true;
+      }
+      return false;
+    },
     renderAiCheckDom(aiCheckToken) {
       return new Promise((resolve) => {
         const appkey = aiCheckToken.split(':').shift();
@@ -276,6 +287,10 @@ export default {
         });
       });
     },
+    onLoginQrcodeDialogClose(done){
+      clearInterval(this.loginQrcodeLoopTimer);
+      done();
+    }
   },
   async mounted() {
     // 拉取配置信息
@@ -297,7 +312,7 @@ export default {
 </script>
 
 <style>
-.aiCheckDialog > .el-dialog__body {
+.aiCheckDialog>.el-dialog__body {
   height: 350px;
 }
 
@@ -311,6 +326,13 @@ export default {
 
 .aiCheckDialog .el-tab-pane {
   height: 100%;
+}
+
+.loginQrcodeDialog>.el-dialog__body {
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 </style>
 <style scoped>
@@ -335,6 +357,7 @@ export default {
   margin-right: 10px;
   text-decoration: underline;
 }
+
 .tipDiv {
   margin-top: 30px;
   font-size: xx-large;
@@ -348,6 +371,25 @@ export default {
 
 .submitBtnDiv {
   margin-top: 30px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.scanLoginBtn {
+  margin-top: 20px;
+  color: rgb(48, 154, 248);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.loginQrcodeImg {
+  height: 200px;
+  width: 200px;
+}
+
+.loginQrcodeStateText {
+  margin-top: 20px;
 }
 
 .checkCodeDiv {

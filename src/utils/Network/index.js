@@ -10,7 +10,7 @@ class Network {
   }
 
   static createNetworkErrorObject() {
-    return { result: false, err: { code: '0', msg: '网络错误' } }
+    return { result: false, err: { code: '0', msg: '网络错误' } };
   }
 
   static responseHandler(response, resolve) {
@@ -41,7 +41,7 @@ class Network {
     return new Promise(async (resolve) => {
       const funcName = '/GetCheckCode.do';
       const params = {
-        otnId: Core.local.getItem('otnId')
+        otnId: Core.local.getItem('otnId'),
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
@@ -52,7 +52,7 @@ class Network {
     return new Promise(async (resolve) => {
       const funcName = '/GetLocalCheckCode.do';
       const params = {
-        otnId: Core.local.getItem('otnId')
+        otnId: Core.local.getItem('otnId'),
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
@@ -147,7 +147,41 @@ class Network {
     return new Promise(async (resolve) => {
       const funcName = '/RegisterDevice.do';
       const params = {
-        otnId: Core.local.getItem('otnId')
+        otnId: Core.local.getItem('otnId'),
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static getLoginQrcode(isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/GetLoginQrcode.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static getLoginQrcodeState(qrcodeId, isLoading = false) {
+    return new Promise(async (resolve) => {
+      const funcName = '/GetLoginQrcodeState.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
+        qrcodeId,
+      };
+      const response = await Http.post(funcName, params, { isLoading });
+      this.responseHandler(response, resolve);
+    });
+  }
+
+  static refreshToken(isLoading = true) {
+    return new Promise(async (resolve) => {
+      const funcName = '/RefreshToken.do';
+      const params = {
+        otnId: Core.local.getItem('otnId'),
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
@@ -162,7 +196,7 @@ class Network {
         startStation,
         endStation,
         date,
-        ticketType
+        ticketType,
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
@@ -192,7 +226,7 @@ class Network {
         phone,
         certCode,
         certNo,
-        typeCode
+        typeCode,
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
@@ -230,7 +264,20 @@ class Network {
     });
   }
 
-  static orderTicket(trainNo, trainId, trainCount, startStation, endStation, date, location, personInfos, seatLocations, keyInfo, aiCheck, isLoading = true) {
+  static orderTicket(
+    trainNo,
+    trainId,
+    trainCount,
+    startStation,
+    endStation,
+    date,
+    location,
+    personInfos,
+    seatLocations,
+    keyInfo,
+    aiCheck,
+    isLoading = true,
+  ) {
     return new Promise(async (resolve) => {
       const funcName = '/OrderTicket.do';
       const params = {
@@ -256,7 +303,7 @@ class Network {
     return new Promise(async (resolve) => {
       const funcName = '/QueryQueue.do';
       const params = {
-        otnId: Core.local.getItem('otnId')
+        otnId: Core.local.getItem('otnId'),
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
@@ -267,7 +314,7 @@ class Network {
     return new Promise(async (resolve) => {
       const funcName = '/CancelQueue.do';
       const params = {
-        otnId: Core.local.getItem('otnId')
+        otnId: Core.local.getItem('otnId'),
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
@@ -278,7 +325,7 @@ class Network {
     return new Promise(async (resolve) => {
       const funcName = '/QueryOrder.do';
       const params = {
-        otnId: Core.local.getItem('otnId')
+        otnId: Core.local.getItem('otnId'),
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
@@ -290,7 +337,7 @@ class Network {
       const funcName = '/CancelOrder.do';
       const params = {
         otnId: Core.local.getItem('otnId'),
-        orderId
+        orderId,
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
@@ -301,7 +348,7 @@ class Network {
     return new Promise(async (resolve) => {
       const funcName = '/Destroy.do';
       const params = {
-        otnId: Core.local.getItem('otnId')
+        otnId: Core.local.getItem('otnId'),
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);
@@ -343,7 +390,7 @@ class Network {
         date,
         startCode,
         endCode,
-        seatTypeCodes
+        seatTypeCodes,
       };
       const response = await Http.post(funcName, params, { isLoading });
       this.responseHandler(response, resolve);

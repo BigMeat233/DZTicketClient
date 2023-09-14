@@ -32,6 +32,37 @@ class AsyncFuncs {
     });
   }
 
+  static async getLoginQrcode() {
+    const result = await Network.getLoginQrcode();
+    if (result.result) {
+      return result.data.qrcodeData;
+    } else if (result.err.code === '1') {
+      Core.ui.message.warn(result.err.msg);
+    } else {
+      Core.ui.message.error(result.err.msg);
+    }
+  }
+
+  static async getLoginQrcodeState(qrcodeId) {
+    const result = await Network.getLoginQrcodeState(qrcodeId);
+    if (result.result) {
+      return result.data.qrcodeState.state;
+    } else {
+      return 'UNKNOWN';
+    }
+  }
+
+  static async refreshToken() {
+    const result = await Network.refreshToken();
+    if (result.result) {
+      return true;
+    } else if (result.err.code === '1') {
+      Core.ui.message.warn(result.err.msg);
+    } else {
+      Core.ui.message.error(result.err.msg);
+    }
+  }
+
   static getCheckCode() {
     return new Promise(async (resolve) => {
       const result = await Network.getCheckCode();
@@ -64,7 +95,7 @@ class AsyncFuncs {
       if (result.result) {
         resolve({
           result: true,
-          aiCheckCode: result.data.aiCheckCode
+          aiCheckCode: result.data.aiCheckCode,
         });
       } else if (result.err.code === '1') {
         Core.ui.message.warn(result.err.msg);
@@ -82,7 +113,7 @@ class AsyncFuncs {
       if (result.result) {
         resolve({
           result: true,
-          aiCheckCode: result.data.aiCheckCode
+          aiCheckCode: result.data.aiCheckCode,
         });
       } else if (result.err.code === '1') {
         Core.ui.message.warn(result.err.msg);
@@ -160,8 +191,9 @@ class AsyncFuncs {
       const result = await Network.queryTickets(startStation, endStation, date, ticketType);
       if (result.result) {
         const ticketInfos = isStationStrict
-          ? (result.data.ticketInfos || [])
-            .filter(({ startStr, endStr }) => startStr === startStation && endStr === endStation)
+          ? (result.data.ticketInfos || []).filter(
+              ({ startStr, endStr }) => startStr === startStation && endStr === endStation,
+            )
           : result.data.ticketInfos;
         resolve(ticketInfos);
       } else {
@@ -176,8 +208,9 @@ class AsyncFuncs {
       const result = await Network.queryTickets(startStation, endStation, date, ticketType, false);
       if (result.result) {
         const ticketInfos = isStationStrict
-          ? (result.data.ticketInfos || [])
-            .filter(({ startStr, endStr }) => startStr === startStation && endStr === endStation)
+          ? (result.data.ticketInfos || []).filter(
+              ({ startStr, endStr }) => startStr === startStation && endStr === endStation,
+            )
           : result.data.ticketInfos;
         resolve(ticketInfos);
       } else {
@@ -196,7 +229,7 @@ class AsyncFuncs {
       } else {
         Core.ui.message.error(result.err.msg);
       }
-    })
+    });
   }
 
   static addPerson(name, sex, phone, certCode, certNo, personCode) {
@@ -233,7 +266,13 @@ class AsyncFuncs {
   // 预下单
   static preOrderTicket(secStr, startStation, endStation, date, ticketType) {
     return new Promise(async (resolve) => {
-      const result = await Network.preOrderTicket(secStr, startStation, endStation, date, ticketType);
+      const result = await Network.preOrderTicket(
+        secStr,
+        startStation,
+        endStation,
+        date,
+        ticketType,
+      );
       if (result.result) {
         resolve({ result: true, preOrderInfo: result.data.preOrderInfo });
       } else {
@@ -245,7 +284,14 @@ class AsyncFuncs {
   // 预下单不带菊花
   static preOrderTicketWithoutLoadingAndTips(secStr, startStation, endStation, date, ticketType) {
     return new Promise(async (resolve) => {
-      const result = await Network.preOrderTicket(secStr, startStation, endStation, date, ticketType, false);
+      const result = await Network.preOrderTicket(
+        secStr,
+        startStation,
+        endStation,
+        date,
+        ticketType,
+        false,
+      );
       if (result.result) {
         resolve({ result: true, preOrderInfo: result.data.preOrderInfo });
       } else {
@@ -255,9 +301,34 @@ class AsyncFuncs {
   }
 
   // 下单(不带菊花)
-  static orderTicketWithoutLoadingAndTips(trainNo, trainId, trainCount, startStation, endStation, date, location, personInfos, seatLocations, keyInfo, aiCheck) {
+  static orderTicketWithoutLoadingAndTips(
+    trainNo,
+    trainId,
+    trainCount,
+    startStation,
+    endStation,
+    date,
+    location,
+    personInfos,
+    seatLocations,
+    keyInfo,
+    aiCheck,
+  ) {
     return new Promise(async (resolve) => {
-      const result = await Network.orderTicket(trainNo, trainId, trainCount, startStation, endStation, date, location, personInfos, seatLocations, keyInfo, aiCheck, false);
+      const result = await Network.orderTicket(
+        trainNo,
+        trainId,
+        trainCount,
+        startStation,
+        endStation,
+        date,
+        location,
+        personInfos,
+        seatLocations,
+        keyInfo,
+        aiCheck,
+        false,
+      );
       if (result.result) {
         resolve({ result: true, queueInfo: result.data.queueInfo });
       } else {
@@ -267,9 +338,33 @@ class AsyncFuncs {
   }
 
   // 下单(带菊花)
-  static orderTicket(trainNo, trainId, trainCount, startStation, endStation, date, location, personInfos, seatLocations, keyInfo, aiCheck) {
+  static orderTicket(
+    trainNo,
+    trainId,
+    trainCount,
+    startStation,
+    endStation,
+    date,
+    location,
+    personInfos,
+    seatLocations,
+    keyInfo,
+    aiCheck,
+  ) {
     return new Promise(async (resolve) => {
-      const result = await Network.orderTicket(trainNo, trainId, trainCount, startStation, endStation, date, location, personInfos, seatLocations, keyInfo, aiCheck);
+      const result = await Network.orderTicket(
+        trainNo,
+        trainId,
+        trainCount,
+        startStation,
+        endStation,
+        date,
+        location,
+        personInfos,
+        seatLocations,
+        keyInfo,
+        aiCheck,
+      );
       if (result.result) {
         resolve({ result: true, queueInfo: result.data.queueInfo });
       } else {
